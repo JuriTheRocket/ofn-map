@@ -347,6 +347,10 @@
       ["Czechia", "Czech Republic"]
     ]);
 
+    function stripTags(s){
+      return String(s || "").replace(/<[^>]*>/g, "").trim();
+    }
+    
     function canonicalName(name){
       const n = (name || "").trim();
       return NAME_ALIASES.get(n) || n;
@@ -490,9 +494,9 @@
         `);
 
         const fields = [];
-        if (wiki.titles && wiki.titles.display) fields.push(["Article", wiki.titles.display]);
-        if (wiki.lang) fields.push(["Language", wiki.lang]);
-        if (wiki.type) fields.push(["Type", wiki.type]);
+        if (wiki.titles && wiki.titles.display) fields.push(["Article", stripTags(wiki.titles.display)]);
+        if (wiki.lang) fields.push(["Language", stripTags(wiki.lang)]);
+        if (wiki.type) fields.push(["Type", stripTags(wiki.type)]);
 
         if (fields.length){
           cards.push(`
@@ -712,136 +716,185 @@
       });
     }
 
-    function emojiFlagForCountry(name){
-      const n = canonicalName(name);
-      const mapEmoji = new Map([
-        ["Luxembourg","🇱🇺"],
-        ["Falkland Islands","🇫🇰"],
-        ["Israel","🇮🇱"],
-        ["United States of America","🇺🇸"],
-        ["Philippines","🇵🇭"],
-        ["Brazil","🇧🇷"]
-      ]);
-      return mapEmoji.get(n) || "★";
+function iso2FromName(name){
+  const n = canonicalName(name);
+  const map = new Map([
+    ["Luxembourg","LU"],
+    ["Falkland Islands","FK"],
+    ["Israel","IL"],
+    ["United States of America","US"],
+    ["Philippines","PH"],
+    ["Brazil","BR"]
+  ]);
+  return map.get(n) || null;
+}
+
+function twemojiFlagUrlFromISO2(iso2){
+  const A = "A".codePointAt(0);
+  const cps = iso2.toUpperCase().split("").map(ch => (0x1F1E6 + (ch.codePointAt(0) - A)).toString(16));
+  return `https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/${cps.join("-")}.png`;
+}
+
+function loadImage(url){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+function drawStar(ctx, cx, cy, spikes, outerR, innerR){
+  let rot = Math.PI / 2 * 3;
+  const step = Math.PI / spikes;
+
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - outerR);
+  for (let i = 0; i < spikes; i++){
+    ctx.lineTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
+    rot += step;
+    ctx.lineTo(cx + Math.cos(rot) * innerR, cy + Math.sin(rot) * innerR);
+    rot += step;
+  }
+  ctx.closePath();
+}
+
+async function runIntroAnimation(){
+  const intro = el("intro");
+  const canvas = el("introCanvas");
+  const ctx = canvas.getContext("2d", { alpha: true });
+  if (!ctx){
+    finishIntro();
+    return;
+  }
+
+  function resize(){
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    canvas.width = Math.floor(canvas.clientWidth * dpr);
+    canvas.height = Math.floor(canvas.clientHeight * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  resize();
+  window.addEventListener("resize", resize, { passive:true });
+
+  const members = Array.from(OFN.members);
+  const nodes = [];
+  for (const name of members){
+    const iso2 = iso2FromName(name);
+    let img = null;
+    if (iso2){
+      try{ img = await loadImage(twemojiFlagUrlFromISO2(iso2)); } catch(_){ img = null; }
+    }
+    nodes.push({ name, iso2, img, phase: Math.random()*Math.PI*2 });
+  }
+
+  const orbitSeconds = 2.0;
+  const flySeconds = 0.7;
+  const fadeInSeconds = 0.55;
+  const total = orbitSeconds + flySeconds + fadeInSeconds;
+
+  let t0 = performance.now();
+
+  function tick(now){
+    const t = (now - t0)/1000;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0,w,h);
+
+    const cx = w*0.5, cy = h*0.5;
+    const R = Math.min(w,h)*0.26;
+
+    const orbitT = Math.min(1, t / orbitSeconds);
+    const flyT = Math.max(0, Math.min(1, (t - orbitSeconds)/flySeconds));
+    const fadeT = Math.max(0, Math.min(1, (t - orbitSeconds - flySeconds)/fadeInSeconds));
+
+    ctx.strokeStyle = "rgba(27,63,191,.16)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI*2);
+    ctx.stroke();
+
+    const pulse = 0.5 + 0.5*Math.sin(t*2.2);
+    ctx.fillStyle = `rgba(255,204,51,${0.18 + 0.10*pulse})`;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4 + 2*pulse, 0, Math.PI*2);
+    ctx.fill();
+
+    const n = Math.max(1, nodes.length);
+    const spin = t * 0.9;
+
+    for (let i=0;i<nodes.length;i++){
+      const node = nodes[i];
+      const a = (i/n)*Math.PI*2 + spin;
+      const wob = 1 + 0.02*Math.sin(t*2.8 + node.phase);
+      let rr = R * wob;
+
+      let x = cx + Math.cos(a)*rr;
+      let y = cy + Math.sin(a)*rr;
+
+      let alpha = Math.min(1, 0.10 + orbitT*0.90);
+
+      if (flyT > 0){
+        const dir = (i % 2 === 0) ? 1 : -1;
+        x += dir * flyT * (w*0.58);
+        y += (Math.sin(a)*flyT) * (h*0.10);
+        alpha *= (1 - flyT);
+      }
+
+      ctx.save();
+
+      ctx.globalAlpha = 0.70 * alpha;
+      ctx.fillStyle = "rgba(255,204,51,.22)";
+      drawStar(ctx, x, y, 5, 18, 8);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.45 * alpha;
+      ctx.strokeStyle = "rgba(27,63,191,.14)";
+      ctx.lineWidth = 1;
+      drawStar(ctx, x, y, 5, 18, 8);
+      ctx.stroke();
+
+      ctx.globalAlpha = 1.0 * alpha;
+      if (node.img){
+        const size = 22;
+        ctx.drawImage(node.img, x - size/2, y - size/2, size, size);
+      } else {
+        ctx.fillStyle = "rgba(15,27,58,.92)";
+        ctx.font = "14px system-ui";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText((node.iso2 || node.name.slice(0,2).toUpperCase()), x, y);
+      }
+
+      ctx.restore();
     }
 
-    function runIntroAnimation(){
-      const intro = el("intro");
-      const canvas = el("introCanvas");
-      const ctx = canvas.getContext("2d", { alpha: true });
-      if (!ctx){
-        finishIntro();
-        return;
-      }
+    topbar.classList.toggle("ready", fadeT > 0.05);
+    statusline.classList.toggle("ready", fadeT > 0.20);
 
-      function resize(){
-        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-        canvas.width = Math.floor(canvas.clientWidth * dpr);
-        canvas.height = Math.floor(canvas.clientHeight * dpr);
-        ctx.setTransform(dpr,0,0,dpr,0,0);
-      }
-      resize();
-      window.addEventListener("resize", resize, { passive:true });
-
-      const members = Array.from(OFN.members);
-      const nodes = members.map((name, i) => ({
-        name,
-        flag: emojiFlagForCountry(name),
-        phase: Math.random()*Math.PI*2
-      }));
-
-      const orbitSeconds = 2.0;
-      const flySeconds = 0.7;
-      const fadeInSeconds = 0.5;
-      const total = orbitSeconds + flySeconds + fadeInSeconds;
-
-      let t0 = performance.now();
-      function tick(now){
-        const t = (now - t0)/1000;
-        const w = canvas.clientWidth;
-        const h = canvas.clientHeight;
-
-        ctx.clearRect(0,0,w,h);
-
-        const cx = w*0.5, cy = h*0.5;
-        const R = Math.min(w,h)*0.26;
-
-        const orbitT = Math.min(1, t / orbitSeconds);
-        const flyT = Math.max(0, Math.min(1, (t - orbitSeconds)/flySeconds));
-        const fadeT = Math.max(0, Math.min(1, (t - orbitSeconds - flySeconds)/fadeInSeconds));
-
-        const spin = t * 0.9;
-
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0,0,w,h);
-
-        ctx.strokeStyle = "rgba(27,63,191,.16)";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(cx, cy, R, 0, Math.PI*2);
-        ctx.stroke();
-
-        const pulse = 0.5 + 0.5*Math.sin(t*2.2);
-        ctx.fillStyle = `rgba(255,204,51,${0.18 + 0.10*pulse})`;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 4 + 2*pulse, 0, Math.PI*2);
-        ctx.fill();
-
-        const n = Math.max(1, nodes.length);
-        for (let i=0;i<nodes.length;i++){
-          const node = nodes[i];
-          const a = (i/n)*Math.PI*2 + spin;
-          let rr = R * (1 + 0.02*Math.sin(t*2.8 + node.phase));
-
-          let x = cx + Math.cos(a)*rr;
-          let y = cy + Math.sin(a)*rr;
-
-          let alpha = Math.min(1, 0.15 + orbitT*0.85);
-
-          if (flyT > 0){
-            const dir = (i % 2 === 0) ? 1 : -1;
-            x += dir * flyT * (w*0.55);
-            y += (Math.sin(a)*flyT) * (h*0.12);
-            alpha *= (1 - flyT);
-          }
-
-          ctx.globalAlpha = 0.55 * alpha;
-          ctx.fillStyle = "rgba(255,204,51,.22)";
-          ctx.beginPath();
-          ctx.arc(x, y, 16, 0, Math.PI*2);
-          ctx.fill();
-
-          ctx.globalAlpha = 1 * alpha;
-          ctx.font = "22px system-ui, Apple Color Emoji, Segoe UI Emoji";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillStyle = "rgba(15,27,58,.95)";
-          ctx.fillText(node.flag, x, y);
-
-          ctx.globalAlpha = 1;
-        }
-
-        if (t < total){
-          requestAnimationFrame(tick);
-        } else {
-          finishIntro();
-        }
-
-        topbar.classList.toggle("ready", fadeT > 0.05);
-        statusline.classList.toggle("ready", fadeT > 0.20);
-      }
-
+    if (t < total){
       requestAnimationFrame(tick);
-
-      function finishIntro(){
-        intro.classList.add("hidden");
-        setTimeout(() => intro.remove(), 600);
-        topbar.classList.add("ready");
-        statusline.classList.add("ready");
-      }
+    } else {
+      finishIntro();
     }
+  }
+
+  requestAnimationFrame(tick);
+
+  function finishIntro(){
+    intro.classList.add("hidden");
+    setTimeout(() => intro.remove(), 600);
+    topbar.classList.add("ready");
+    statusline.classList.add("ready");
+  }
+}
 
     initMap();
   </script>
 </body>
 </html>
+
