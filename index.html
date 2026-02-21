@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Organisation of Free Nations — Geopolitical Dashboard</title>
+  <title>OFN — European-Style Dashboard</title>
 
-  <!-- Standalone: no API keys, no backend. Uses public OSM tiles via Leaflet. -->
+  <!-- Standalone static (no keys, no backend). Uses Leaflet + OSM tiles (no API key). -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -15,664 +15,446 @@
 
   <style>
     :root{
-      --bg0:#050914;
-      --bg1:#071025;
-      --panel: rgba(12, 20, 45, .62);
-      --panel2: rgba(10, 18, 40, .78);
-      --stroke: rgba(140, 180, 255, .18);
-      --stroke2: rgba(140, 180, 255, .28);
-      --text: rgba(235, 245, 255, .92);
-      --muted: rgba(210, 230, 255, .70);
+      /* EU-ish, clean, bright */
+      --bg: #f5f7fb;
+      --bg2:#eef2fb;
+      --card:#ffffff;
+      --line:#d7deef;
+      --line2:#c9d2ea;
+      --text:#0f1b3a;
+      --muted:#51607f;
 
-      --ofn: #67b7ff;
-      --founding: #b8d7ff;
-      --observer: #ffd07a;
-      --neutral: rgba(170, 195, 235, .55);
+      --blue:#1b3fbf;     /* EU-ish blue */
+      --blue2:#2b6dff;
+      --gold:#ffcc33;     /* EU stars */
+      --teal:#18a999;
+      --orange:#f2994a;
+      --gray:#8aa0c2;
 
-      --ok: #5cffc8;
-      --warn:#ffd36a;
-      --bad:#ff6a8e;
+      --shadow: 0 10px 26px rgba(15,27,58,.12);
+      --shadow2: 0 6px 16px rgba(15,27,58,.10);
 
-      --shadow: 0 18px 55px rgba(0,0,0,.45);
-      --shadow2: 0 12px 30px rgba(0,0,0,.35);
-      --r: 16px;
+      --r: 18px;
       --r2: 22px;
     }
 
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; background: radial-gradient(1200px 800px at 50% 20%, #0a1a3f 0%, var(--bg0) 50%, #040711 100%); color: var(--text); font: 14px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; overflow: hidden; }
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; margin:0; font:14px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--text); background:linear-gradient(180deg,var(--bg),var(--bg2)); overflow:hidden; }
 
-    /* starfield background */
-    #bg {
-      position: fixed; inset: 0; z-index: 0;
-      background: radial-gradient(900px 550px at 50% 10%, rgba(110,165,255,.12), transparent 60%),
-                  radial-gradient(650px 450px at 80% 70%, rgba(70,255,220,.08), transparent 55%),
-                  radial-gradient(700px 450px at 15% 70%, rgba(255,210,120,.06), transparent 55%);
-    }
-    #bg canvas { position:absolute; inset:0; width:100%; height:100%; opacity:.75; }
-
-    /* App layout */
-    #app {
-      position: relative;
-      z-index: 1;
-      height: 100%;
-      display: grid;
-      grid-template-columns: 360px 1fr 390px;
-      grid-template-rows: 70px 1fr 46px;
-      gap: 14px;
-      padding: 14px;
-    }
-
-    header {
-      grid-column: 1 / 4;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      background: linear-gradient(180deg, rgba(14, 26, 60, .62), rgba(10, 16, 40, .45));
-      border: 1px solid var(--stroke);
+    /* Top bar */
+    #topbar{
+      position: fixed;
+      z-index: 30;
+      left: 16px;
+      right: 16px;
+      top: 14px;
+      height: 60px;
+      background: rgba(255,255,255,.86);
+      border: 1px solid var(--line);
       border-radius: var(--r2);
       box-shadow: var(--shadow2);
       backdrop-filter: blur(10px);
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      gap: 12px;
     }
 
-    .brand {
-      display:flex; gap:12px; align-items:center;
-      min-width: 280px;
+    .brand{
+      display:flex; align-items:center; gap: 12px; min-width: 280px;
     }
-    .logo {
-      width: 34px; height: 34px;
-      border-radius: 12px;
-      border: 1px solid rgba(160, 200, 255, .35);
-      background: radial-gradient(circle at 35% 35%, rgba(140,200,255,.75), rgba(55,120,255,.22) 55%, rgba(0,0,0,.12) 100%);
-      box-shadow: 0 0 0 6px rgba(70, 150, 255, .07), 0 0 28px rgba(90,170,255,.20);
-      position: relative;
-      overflow:hidden;
+    .emblem{
+      width: 38px; height: 38px; border-radius: 14px;
+      border: 1px solid var(--line);
+      background: radial-gradient(circle at 35% 30%, rgba(43,109,255,.35), rgba(27,63,191,.10) 55%, rgba(255,255,255,1) 100%);
+      box-shadow: 0 0 0 6px rgba(27,63,191,.06);
+      position:relative; overflow:hidden;
     }
-    .logo:after{
+    .emblem:after{
       content:"";
-      position:absolute; inset:-40%;
-      background: conic-gradient(from 210deg, transparent 0 20%, rgba(255,255,255,.10) 20% 30%, transparent 30% 60%, rgba(120,220,255,.10) 60% 70%, transparent 70% 100%);
+      position:absolute; inset:-35%;
+      background: conic-gradient(from 200deg, rgba(255,204,51,.0) 0 20%, rgba(255,204,51,.35) 20% 26%, rgba(255,204,51,0) 26% 55%, rgba(43,109,255,.22) 55% 62%, rgba(255,204,51,0) 62% 100%);
       animation: spin 10s linear infinite;
-      opacity: .9;
+      opacity:.9;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin{ to{ transform:rotate(360deg);} }
 
-    .brand h1{
-      margin: 0;
-      font-size: 14px;
-      letter-spacing: .24em;
-      text-transform: uppercase;
-      color: rgba(235,245,255,.92);
-    }
-    .brand .sub{
-      margin: 2px 0 0 0;
-      font-size: 12px;
-      color: var(--muted);
-    }
+    .brand h1{ margin:0; font-size: 13px; letter-spacing:.18em; text-transform:uppercase; color: var(--blue); }
+    .brand .sub{ margin:2px 0 0 0; font-size: 12px; color: var(--muted); }
 
-    .controls {
-      display:flex; align-items:center; justify-content:flex-end; gap:10px;
-      flex-wrap: wrap;
-    }
-
-    .pill, button, select, input {
+    .controls{ display:flex; align-items:center; gap: 10px; flex-wrap: wrap; justify-content:flex-end; }
+    input, select, button{
       border-radius: 999px;
-      border: 1px solid rgba(160, 200, 255, .22);
-      background: rgba(12, 20, 45, .52);
+      border: 1px solid var(--line);
+      background: #fff;
       color: var(--text);
       padding: 9px 12px;
       outline: none;
-      box-shadow: 0 0 0 0 rgba(100, 180, 255, 0);
-      transition: box-shadow .18s ease, border-color .18s ease, transform .12s ease;
-      backdrop-filter: blur(10px);
+      box-shadow: 0 0 0 0 rgba(43,109,255,0);
+      transition: box-shadow .16s ease, border-color .16s ease, transform .10s ease;
     }
-    input::placeholder { color: rgba(210,230,255,.45); }
-    button { cursor:pointer; }
-    button:hover { border-color: rgba(160, 200, 255, .34); box-shadow: 0 0 0 5px rgba(90, 170, 255, .10); }
-    button:active { transform: translateY(1px); }
-    .pill {
-      font-size: 12px;
-      display:flex; gap:8px; align-items:center;
-      user-select:none;
-    }
-    .dot {
-      width: 9px; height: 9px; border-radius: 50%;
-      background: rgba(255,255,255,.25);
-      box-shadow: 0 0 12px rgba(120,200,255,.18);
+    input::placeholder{ color: rgba(81,96,127,.65); }
+    button{ cursor:pointer; background: linear-gradient(180deg, #ffffff, #f7f9ff); }
+    button:hover{ border-color: var(--line2); box-shadow: 0 0 0 4px rgba(43,109,255,.10); }
+    button:active{ transform: translateY(1px); }
+    .primary{
+      border-color: rgba(27,63,191,.25);
+      background: linear-gradient(180deg, rgba(43,109,255,.12), rgba(27,63,191,.06));
     }
 
-    /* Panels */
-    .panel {
-      background: linear-gradient(180deg, rgba(16, 26, 58, .62), rgba(10, 16, 40, .50));
-      border: 1px solid var(--stroke);
+    /* Map */
+    #map{
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+
+    /* Light “EU” footer-ish badge */
+    #statusline{
+      position: fixed;
+      z-index: 25;
+      left: 16px;
+      bottom: 16px;
+      background: rgba(255,255,255,.88);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 12px;
+      box-shadow: var(--shadow2);
+      backdrop-filter: blur(10px);
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      color: var(--muted);
+      max-width: calc(100vw - 32px);
+    }
+    .pillDot{
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--blue2);
+      box-shadow: 0 0 0 4px rgba(43,109,255,.12);
+    }
+    #statusline b{ color: var(--text); }
+
+    /* Left drawer (only opens when you click a nation) */
+    #drawer{
+      position: fixed;
+      z-index: 35;
+      top: 88px;
+      left: 16px;
+      bottom: 16px;
+      width: min(420px, calc(100vw - 32px));
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--line);
       border-radius: var(--r2);
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
-      overflow: hidden;
-      position: relative;
-    }
-    .panel:before{
-      content:"";
-      position:absolute; inset:0;
-      background: radial-gradient(600px 220px at 50% 0%, rgba(105,170,255,.12), transparent 60%);
-      pointer-events:none;
-    }
-    .panel .inner{
-      position:relative;
-      padding: 14px;
-      height: 100%;
+      transform: translateX(-110%);
+      transition: transform .22s ease;
+      overflow:hidden;
       display:flex;
       flex-direction: column;
-      gap: 12px;
     }
+    #drawer.open{ transform: translateX(0); }
 
-    /* Left: roster/legend */
-    #left .title,
-    #right .title{
+    .drawerHead{
+      padding: 14px 14px 12px 14px;
+      border-bottom: 1px solid var(--line);
       display:flex;
+      gap: 12px;
       align-items:center;
       justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 4px;
+      background: linear-gradient(180deg, rgba(255,255,255,1), rgba(247,249,255,.85));
     }
-    .title h2{
-      margin:0;
-      font-size: 12px;
-      letter-spacing: .22em;
-      text-transform: uppercase;
-      color: rgba(230,245,255,.92);
+    .drawerTitle{
+      display:flex; align-items:center; gap: 10px; min-width:0;
     }
-    .title small{
-      color: rgba(210,230,255,.58);
-    }
-
-    .legend {
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-    .legend .item{
-      display:flex; align-items:center; gap:10px;
-      padding: 10px 10px;
-      border-radius: 14px;
-      border: 1px solid rgba(160, 200, 255, .14);
-      background: rgba(10, 16, 40, .40);
-    }
-    .badge{
-      width: 10px; height: 10px; border-radius: 50%;
-      box-shadow: 0 0 16px rgba(110,180,255,.18);
-    }
-    .badge.ofn{ background: var(--ofn); }
-    .badge.founding{ background: var(--founding); }
-    .badge.observer{ background: var(--observer); }
-    .badge.neutral{ background: rgba(170,195,235,.55); }
-
-    .roster {
-      overflow: auto;
-      padding-right: 4px;
-      display:flex;
-      flex-direction: column;
-      gap: 8px;
-      min-height: 0;
-    }
-    .row {
-      display:flex;
-      align-items:flex-start;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 10px 10px;
-      border-radius: 16px;
-      border: 1px solid rgba(160, 200, 255, .14);
-      background: rgba(10, 16, 40, .38);
-      cursor: pointer;
-      transition: transform .12s ease, border-color .18s ease, background .18s ease;
-    }
-    .row:hover{
-      border-color: rgba(160, 200, 255, .28);
-      background: rgba(12, 20, 48, .55);
-      transform: translateY(-1px);
-    }
-    .row .a{
-      display:flex; gap:10px; align-items:center; min-width:0;
-    }
-    .flag{
-      width: 28px; height: 28px;
-      display:grid; place-items:center;
-      border-radius: 10px;
-      border: 1px solid rgba(160, 200, 255, .18);
-      background: rgba(10, 16, 40, .35);
-      box-shadow: 0 0 22px rgba(90,170,255,.10);
-      flex: 0 0 auto;
-    }
-    .name { font-weight: 620; white-space: nowrap; overflow:hidden; text-overflow: ellipsis; }
-    .meta { color: rgba(210,230,255,.58); font-size: 12px; margin-top: 2px; white-space: nowrap; overflow:hidden; text-overflow: ellipsis; }
-    .tag {
-      font-size: 11px;
-      padding: 5px 9px;
-      border-radius: 999px;
-      border: 1px solid rgba(160, 200, 255, .18);
-      background: rgba(10, 16, 40, .35);
-      color: rgba(235,245,255,.85);
-      white-space: nowrap;
-      flex: 0 0 auto;
-      margin-top: 2px;
-    }
-    .tag.ofn{ border-color: rgba(120, 200, 255, .35); box-shadow: 0 0 0 4px rgba(100, 180, 255, .08); }
-    .tag.founding{ border-color: rgba(210, 230, 255, .35); }
-    .tag.observer{ border-color: rgba(255, 210, 120, .35); }
-    .tag.neutral{ border-color: rgba(170,195,235,.25); color: rgba(210,230,255,.70); }
-
-    /* Center: map */
-    #mapPanel { padding: 0; }
-    #map {
-      position: relative;
-      height: 100%;
-      width: 100%;
-      border-radius: var(--r2);
-      overflow:hidden;
-    }
-    .mapOverlayHUD{
-      position:absolute;
-      z-index: 500;
-      top: 12px; left: 12px;
-      display:flex;
-      flex-direction: column;
-      gap: 8px;
-      pointer-events:none;
-    }
-    .hudCard{
-      pointer-events:auto;
-      padding: 10px 12px;
-      border-radius: 16px;
-      border: 1px solid rgba(160, 200, 255, .18);
-      background: rgba(8, 12, 26, .52);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 12px 30px rgba(0,0,0,.32);
-      min-width: 220px;
-    }
-    .hudCard .k{ font-size: 12px; color: rgba(210,230,255,.58); }
-    .hudCard .v{ margin-top: 2px; font-weight: 650; letter-spacing: .02em; }
-    .hudRow{ display:flex; justify-content: space-between; gap: 10px; margin-top: 6px; color: rgba(210,230,255,.70); font-size: 12px; }
-    .hudRow b{ color: rgba(235,245,255,.92); }
-
-    /* Right: details */
-    .detailTop{
-      display:flex; gap:10px; align-items:center;
-      padding: 12px;
-      border-radius: 18px;
-      border: 1px solid rgba(160, 200, 255, .16);
-      background: rgba(10, 16, 40, .35);
-    }
-    .detailTop .bigFlag{
+    .flagBig{
       width: 44px; height: 44px; border-radius: 16px;
       display:grid; place-items:center;
-      border: 1px solid rgba(160, 200, 255, .20);
-      background: rgba(10, 16, 40, .30);
-      box-shadow: 0 0 26px rgba(90,170,255,.12);
-      flex: 0 0 auto;
+      border: 1px solid var(--line);
+      background: #fff;
+      box-shadow: 0 0 0 6px rgba(27,63,191,.06);
       font-size: 22px;
+      flex: 0 0 auto;
     }
-    .detailTop .titles{ min-width:0; }
-    #detailName{ margin:0; font-size: 16px; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow: ellipsis; }
-    #detailStatus{ margin-top: 3px; color: rgba(210,230,255,.65); font-size: 12px; }
+    .titleText{ min-width:0; }
+    .titleText h2{ margin:0; font-size: 16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .titleText .mini{ margin-top:2px; font-size: 12px; color: var(--muted); display:flex; gap:8px; align-items:center; flex-wrap: wrap; }
 
-    .detailBody{
-      padding: 12px;
-      border-radius: 18px;
-      border: 1px solid rgba(160, 200, 255, .16);
-      background: rgba(10, 16, 40, .30);
+    .badge{
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .badge.founding{ border-color: rgba(255,204,51,.55); color: #7c5b00; }
+    .badge.member{ border-color: rgba(43,109,255,.40); color: #1033a3; }
+    .badge.observer{ border-color: rgba(242,153,74,.45); color: #7b3f00; }
+    .badge.special{ border-color: rgba(24,169,153,.45); color: #0b5b51; }
+    .badge.neutral{ border-color: rgba(138,160,194,.45); color: #3a4c6c; }
+
+    .drawerActions{ display:flex; gap: 8px; align-items:center; }
+    .iconBtn{
+      width: 38px; height: 38px; border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor:pointer;
+      display:grid; place-items:center;
+    }
+    .iconBtn:hover{ box-shadow: 0 0 0 4px rgba(43,109,255,.10); }
+
+    .drawerBody{
+      padding: 12px 14px 14px 14px;
+      overflow:auto;
       display:flex;
       flex-direction: column;
       gap: 10px;
       min-height: 0;
-      overflow:auto;
+    }
+
+    .card{
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      background: #fff;
+      box-shadow: 0 6px 14px rgba(15,27,58,.06);
+      padding: 12px;
+    }
+    .card h3{
+      margin:0 0 8px 0;
+      font-size: 12px;
+      letter-spacing:.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
     .kv{
-      display:grid;
-      grid-template-columns: 120px 1fr;
-      gap: 8px;
-      padding: 10px 10px;
-      border-radius: 16px;
-      border: 1px solid rgba(160, 200, 255, .12);
-      background: rgba(8, 12, 26, .38);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      background: linear-gradient(180deg, #fff, #fbfcff);
     }
-    .kv .k{ color: rgba(210,230,255,.58); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
-    .kv .v{ color: rgba(235,245,255,.88); }
-    .note{
-      padding: 10px 10px;
-      border-radius: 16px;
-      border: 1px dashed rgba(160, 200, 255, .18);
-      background: rgba(8, 12, 26, .28);
-      color: rgba(210,230,255,.72);
-    }
-
-    footer{
-      grid-column: 1 / 4;
-      display:flex;
-      justify-content: space-between;
-      align-items:center;
-      padding: 10px 14px;
-      background: rgba(10, 16, 40, .45);
-      border: 1px solid var(--stroke);
-      border-radius: var(--r2);
-      box-shadow: var(--shadow2);
-      backdrop-filter: blur(10px);
-      color: rgba(210,230,255,.68);
-      font-size: 12px;
-    }
-    footer .right{ display:flex; align-items:center; gap:10px; }
-
-    /* Intro overlay */
-    #intro {
-      position: fixed; inset: 0; z-index: 50;
-      display:grid; place-items:center;
-      background: radial-gradient(900px 600px at 50% 25%, rgba(110,165,255,.18), transparent 60%),
-                  radial-gradient(1200px 900px at 50% 120%, rgba(10,16,40,1) 0%, rgba(6,8,18,.98) 55%, rgba(4,6,14,1) 100%);
-      border-bottom: 1px solid rgba(160, 200, 255, .10);
-    }
-    #intro .card{
-      width: min(860px, calc(100vw - 28px));
-      border-radius: 28px;
-      border: 1px solid rgba(160, 200, 255, .18);
-      background: linear-gradient(180deg, rgba(16, 26, 58, .62), rgba(10, 16, 40, .48));
-      box-shadow: 0 22px 80px rgba(0,0,0,.55);
-      backdrop-filter: blur(12px);
-      overflow:hidden;
-      position: relative;
-    }
-    #intro .card:before{
-      content:"";
-      position:absolute; inset:0;
-      background:
-        radial-gradient(600px 240px at 50% 0%, rgba(105,170,255,.14), transparent 60%),
-        radial-gradient(420px 220px at 78% 65%, rgba(120,255,220,.08), transparent 60%),
-        radial-gradient(420px 220px at 22% 65%, rgba(255,210,120,.06), transparent 60%);
-      pointer-events:none;
-    }
-    #intro .wrap{
-      position: relative;
-      display:grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: 0;
-      min-height: 420px;
-    }
-    #intro .left{
-      padding: 26px 26px 22px 26px;
-      border-right: 1px solid rgba(160, 200, 255, .12);
-      display:flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    #intro .right{
-      padding: 22px;
-      display:flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    #intro h3{
-      margin:0;
-      font-size: 12px;
-      letter-spacing: .28em;
+    .kv .k{
+      font-size: 11px;
+      letter-spacing:.14em;
       text-transform: uppercase;
-      color: rgba(210,230,255,.75);
+      color: var(--muted);
     }
-    #intro h2{
-      margin: 2px 0 0 0;
-      font-size: 22px;
-      letter-spacing: .06em;
+    .kv .v{
+      margin-top: 4px;
+      font-weight: 650;
+      color: var(--text);
+      overflow-wrap:anywhere;
     }
-    #intro p{
-      margin: 0;
-      color: rgba(210,230,255,.70);
-      max-width: 56ch;
+    .note{
+      color: var(--muted);
+      margin:0;
     }
-    .ringBox{
-      border-radius: 22px;
-      border: 1px solid rgba(160, 200, 255, .18);
-      background: rgba(8, 12, 26, .35);
-      overflow:hidden;
-      position: relative;
-      height: 260px;
-      box-shadow: 0 18px 55px rgba(0,0,0,.32);
-    }
-    .ringBox canvas{ position:absolute; inset:0; width:100%; height:100%; }
-    .ringCaption{
-      display:flex; justify-content: space-between; align-items:center;
-      margin-top: 10px;
-      color: rgba(210,230,255,.65);
-      font-size: 12px;
-    }
-    .ringCaption b{ color: rgba(235,245,255,.92); }
 
-    .introBtns{
-      margin-top: auto;
+    /* Intro overlay: only the star-ring boot (no debug screen) */
+    #intro{
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display:grid;
+      place-items:center;
+      background: radial-gradient(900px 600px at 50% 35%, rgba(43,109,255,.18), transparent 60%),
+                  linear-gradient(180deg, #ffffff 0%, #f2f6ff 45%, #eef2fb 100%);
+      transition: opacity .35s ease, transform .35s ease;
+    }
+    #intro.hidden{
+      opacity: 0;
+      pointer-events:none;
+      transform: translateY(-8px);
+    }
+    #intro .ringWrap{
+      width: min(760px, calc(100vw - 36px));
+      border-radius: 30px;
+      background: rgba(255,255,255,.85);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding: 18px 18px 14px 18px;
+    }
+    #intro .row{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    #intro .row .t{
+      display:flex; align-items:center; gap: 12px;
+    }
+    #intro .row .t h2{
+      margin:0;
+      font-size: 14px;
+      letter-spacing:.18em;
+      text-transform: uppercase;
+      color: var(--blue);
+    }
+    #intro .row .t .mini{
+      margin-top:2px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    #intro .row .meta{
+      font-size: 12px;
+      color: var(--muted);
       display:flex;
       gap: 10px;
-      flex-wrap: wrap;
       align-items:center;
-      justify-content:flex-start;
+      flex-wrap: wrap;
+      justify-content:flex-end;
     }
-    .primary{
-      background: linear-gradient(180deg, rgba(110, 180, 255, .22), rgba(25, 55, 120, .30));
-      border-color: rgba(150, 210, 255, .35);
+    #intro .canvasBox{
+      height: 300px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: radial-gradient(700px 240px at 50% 30%, rgba(43,109,255,.10), transparent 60%),
+                  linear-gradient(180deg, #ffffff, #f7f9ff);
+      overflow:hidden;
+      position: relative;
     }
-    .quiet{
-      background: rgba(10, 16, 40, .25);
-    }
-    .warnCard{
-      padding: 12px;
-      border-radius: 18px;
-      border: 1px solid rgba(255, 210, 120, .24);
-      background: rgba(40, 30, 10, .18);
-      color: rgba(255, 235, 200, .82);
+    #intro canvas{ position:absolute; inset:0; width:100%; height:100%; }
+    #intro .foot{
+      margin-top: 12px;
+      display:flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items:center;
+      color: var(--muted);
       font-size: 12px;
-      display:none;
     }
 
-    .hidden { display:none !important; }
-
-    /* Leaflet tweaks */
-    .leaflet-control-attribution { background: rgba(8, 12, 26, .55) !important; color: rgba(210,230,255,.55) !important; border-radius: 10px; border: 1px solid rgba(160,200,255,.12); }
-    .leaflet-control-zoom a { background: rgba(8, 12, 26, .58) !important; color: rgba(235,245,255,.85) !important; border: 1px solid rgba(160,200,255,.18) !important; }
-    .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: rgba(8,12,26,.82) !important; color: rgba(235,245,255,.90) !important; border: 1px solid rgba(160,200,255,.18) !important; backdrop-filter: blur(10px); }
-    .leaflet-container { background: #071025; }
-
-    /* Responsive */
-    @media (max-width: 1180px){
-      #app{
-        grid-template-columns: 330px 1fr;
-        grid-template-rows: 70px 1fr 1fr 46px;
-      }
-      #right { grid-column: 1 / 3; }
-      #mapPanel { grid-column: 2 / 3; grid-row: 2 / 3; }
-      #left { grid-column: 1 / 2; grid-row: 2 / 3; }
+    /* Leaflet styling */
+    .leaflet-control-attribution{
+      background: rgba(255,255,255,.86) !important;
+      border: 1px solid var(--line) !important;
+      border-radius: 12px !important;
+      box-shadow: var(--shadow2);
+      backdrop-filter: blur(10px);
+      color: var(--muted) !important;
     }
-    @media (max-width: 860px){
-      #app{
-        grid-template-columns: 1fr;
-        grid-template-rows: 70px 420px 420px 520px 46px;
-      }
-      header{ grid-column: 1 / 2; }
-      #left{ grid-column: 1 / 2; grid-row: 2 / 3; }
-      #mapPanel{ grid-column: 1 / 2; grid-row: 3 / 4; }
-      #right{ grid-column: 1 / 2; grid-row: 4 / 5; }
-      footer{ grid-column: 1 / 2; }
+    .leaflet-control-zoom a{
+      background: rgba(255,255,255,.92) !important;
+      border: 1px solid var(--line) !important;
+      color: var(--text) !important;
+    }
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip{
+      background: rgba(255,255,255,.95) !important;
+      border: 1px solid var(--line) !important;
+      box-shadow: var(--shadow2);
+      color: var(--text) !important;
+      backdrop-filter: blur(10px);
+    }
+
+    /* Small screens */
+    @media (max-width: 720px){
+      #topbar{ height:auto; padding: 10px; gap: 10px; }
+      .brand{ min-width: 0; }
+      .controls{ width: 100%; justify-content: flex-start; }
+      #drawer{ top: 96px; width: calc(100vw - 32px); }
+      .grid2{ grid-template-columns: 1fr; }
+      #intro .canvasBox{ height: 260px; }
     }
   </style>
 </head>
 
 <body>
-  <div id="bg"><canvas id="starCanvas"></canvas></div>
-
-  <!-- Intro overlay -->
-  <section id="intro" aria-label="Intro">
-    <div class="card">
-      <div class="wrap">
-        <div class="left">
-          <h3>Organisation of Free Nations</h3>
-          <h2>Member State Ring Initialization</h2>
-          <p>
-            This dashboard is fully standalone — no keys, no backend, no announcements.
-            The only thing you edit is the country list inside this HTML file (perfect for GitHub → Netlify auto-publish).
-          </p>
-
-          <div class="ringBox" role="img" aria-label="Member star ring animation">
-            <canvas id="ringCanvas"></canvas>
-          </div>
-
-          <div class="ringCaption">
-            <span>Active nodes: <b id="ringCount">0</b></span>
-            <span>Integrity: <b id="ringIntegrity">STABLE</b></span>
-          </div>
-
-          <div class="introBtns">
-            <button id="enterBtn" class="primary" type="button">Enter Dashboard</button>
-            <button id="skipBtn" class="quiet" type="button">Skip Intro</button>
-            <span class="pill" title="No backend required">
-              <span class="dot"></span>
-              Standalone / Static
-            </span>
+  <!-- Intro: circle of stars (flags) -> fly away -> then app -->
+  <section id="intro" aria-label="Boot animation">
+    <div class="ringWrap">
+      <div class="row">
+        <div class="t">
+          <div class="emblem" aria-hidden="true"></div>
+          <div>
+            <h2>Organisation of Free Nations</h2>
+            <div class="mini">Unified member ring • standby…</div>
           </div>
         </div>
-
-        <div class="right">
-          <div class="warnCard" id="tileWarn">
-            <b>Heads up:</b> map tiles did not load (offline or blocked).
-            The dashboard still works; markers + country data remain available.
-          </div>
-
-          <div class="panel" style="height: 100%;">
-            <div class="inner">
-              <div class="title">
-                <h2>Boot Notes</h2>
-                <small id="bootTime">—</small>
-              </div>
-
-              <div class="note">
-                <b>How you update countries:</b><br/>
-                Open this HTML → edit <code>COUNTRIES</code> at the top of the script.
-                Change <code>status</code> to <code>founding</code>, <code>member</code>, <code>observer</code>, or <code>neutral</code>.
-              </div>
-
-              <div class="note">
-                <b>View Modes:</b><br/>
-                <ul style="margin:8px 0 0 18px; padding:0; color: rgba(210,230,255,.72);">
-                  <li><b>Neutral View</b> = subdued styling</li>
-                  <li><b>OFN Member View</b> = highlights member states</li>
-                </ul>
-              </div>
-
-              <div class="note">
-                <b>Map note:</b><br/>
-                Uses public OpenStreetMap tiles via Leaflet (no keys).
-                If you want <i>zero</i> external calls, remove the tile layer —
-                you’ll still have the globe + markers, just no basemap.
-              </div>
-
-              <div style="margin-top:auto; color: rgba(210,230,255,.55); font-size:12px;">
-                Tip: If Netlify ever “hangs” again, it’s usually a script waiting on something.
-                This build has hard timeouts and safe-fails.
-              </div>
-            </div>
-          </div>
+        <div class="meta">
+          <span><b id="introCount">0</b> member stars</span>
+          <span style="display:flex;align-items:center;gap:8px;">
+            <span class="pillDot" style="background:var(--gold); box-shadow: 0 0 0 4px rgba(255,204,51,.18)"></span>
+            EU-style theme
+          </span>
         </div>
+      </div>
+
+      <div class="canvasBox">
+        <canvas id="introCanvas"></canvas>
+      </div>
+
+      <div class="foot">
+        <span id="introLine">Aligning constellations…</span>
+        <button id="skipIntro" class="primary" type="button">Skip</button>
       </div>
     </div>
   </section>
 
-  <!-- Main app -->
-  <main id="app" class="hidden">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div>
-          <h1>Organisation of Free Nations</h1>
-          <div class="sub" id="subtitle">Geopolitical Dashboard • Standalone Static Build</div>
-        </div>
-      </div>
+  <!-- App -->
+  <div id="map" aria-label="Map"></div>
 
-      <div class="controls">
-        <input id="search" type="text" placeholder="Search country…" spellcheck="false" />
-        <select id="filter">
-          <option value="all">All statuses</option>
-          <option value="founding">Founding</option>
-          <option value="member">Member</option>
-          <option value="observer">Observer</option>
-          <option value="neutral">Neutral</option>
-        </select>
-        <button id="modeBtn" type="button" title="Toggle view mode">Switch to Member View</button>
-        <button id="fitBtn" type="button" title="Fit map to all markers">Fit</button>
-      </div>
-    </header>
-
-    <section id="left" class="panel">
-      <div class="inner">
-        <div class="title">
-          <h2>Roster</h2>
-          <small><span id="countShown">0</span>/<span id="countTotal">0</span></small>
-        </div>
-
-        <div class="legend">
-          <div class="item"><span class="badge founding"></span><div><b>Founding</b><div style="color:rgba(210,230,255,.58);font-size:12px;">Core signatories</div></div></div>
-          <div class="item"><span class="badge ofn"></span><div><b>Member</b><div style="color:rgba(210,230,255,.58);font-size:12px;">Active states</div></div></div>
-          <div class="item"><span class="badge observer"></span><div><b>Observer</b><div style="color:rgba(210,230,255,.58);font-size:12px;">Limited participation</div></div></div>
-          <div class="item"><span class="badge neutral"></span><div><b>Neutral</b><div style="color:rgba(210,230,255,.58);font-size:12px;">Not aligned</div></div></div>
-        </div>
-
-        <div class="roster" id="roster"></div>
-      </div>
-    </section>
-
-    <section id="mapPanel" class="panel">
-      <div id="map">
-        <div class="mapOverlayHUD">
-          <div class="hudCard">
-            <div class="k">Selected</div>
-            <div class="v" id="hudSelected">—</div>
-            <div class="hudRow">
-              <span>Status: <b id="hudStatus">—</b></span>
-              <span>Mode: <b id="hudMode">Neutral</b></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="right" class="panel">
-      <div class="inner">
-        <div class="title">
-          <h2>Country Info</h2>
-          <small id="detailHint">Click a marker or roster entry</small>
-        </div>
-
-        <div class="detailTop">
-          <div class="bigFlag" id="detailFlag">🌐</div>
-          <div class="titles">
-            <h3 id="detailName">No country selected</h3>
-            <div id="detailStatus">—</div>
-          </div>
-        </div>
-
-        <div class="detailBody" id="detailBody">
-          <div class="note">
-            This is intentionally “static-friendly”: everything is driven by the <code>COUNTRIES</code> list.
-            Add/remove countries there, push to GitHub, Netlify redeploys automatically.
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <footer>
+  <div id="topbar" role="banner">
+    <div class="brand">
+      <div class="emblem" aria-hidden="true"></div>
       <div>
-        <span id="footerLine">OFN Dashboard • Static Build</span>
+        <h1>Organisation of Free Nations</h1>
+        <div class="sub">European-style dashboard • click any nation to open details</div>
       </div>
-      <div class="right">
-        <span class="pill"><span class="dot"></span><span id="netState">Online-ready</span></span>
-        <button id="replayIntro" class="quiet" type="button">Replay Intro</button>
+    </div>
+
+    <div class="controls" role="toolbar" aria-label="Controls">
+      <input id="search" type="text" placeholder="Search nations…" spellcheck="false" />
+      <select id="filter">
+        <option value="all">All statuses</option>
+        <option value="founding">Founding</option>
+        <option value="member">Member</option>
+        <option value="observer">Observer</option>
+        <option value="special">Special</option>
+        <option value="neutral">Neutral</option>
+      </select>
+      <button id="modeBtn" type="button" title="Toggle highlight behavior">Member Highlight: ON</button>
+      <button id="fitBtn" type="button">Fit</button>
+    </div>
+  </div>
+
+  <div id="statusline" aria-live="polite">
+    <span class="pillDot"></span>
+    <span><b id="selName">No selection</b> · <span id="selStatus">—</span></span>
+  </div>
+
+  <!-- Drawer (left) -->
+  <aside id="drawer" aria-label="Country details panel">
+    <div class="drawerHead">
+      <div class="drawerTitle">
+        <div class="flagBig" id="dFlag">🌍</div>
+        <div class="titleText">
+          <h2 id="dName">—</h2>
+          <div class="mini">
+            <span class="badge neutral" id="dBadge">—</span>
+            <span id="dMini">—</span>
+          </div>
+        </div>
       </div>
-    </footer>
-  </main>
+
+      <div class="drawerActions">
+        <button class="iconBtn" id="zoomBtn" type="button" title="Zoom to country">⤢</button>
+        <button class="iconBtn" id="closeBtn" type="button" title="Close">✕</button>
+      </div>
+    </div>
+
+    <div class="drawerBody" id="drawerBody">
+      <!-- Filled dynamically -->
+    </div>
+  </aside>
 
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -683,8 +465,9 @@
   <script>
     /**********************************************************************
      * EDIT THIS LIST IN GITHUB
-     * - This is the ONLY place you *need* to update for new states/status.
-     * - lat/lng is used for the marker location (usually capital).
+     * status: founding | member | observer | special | neutral
+     * - The intro ring uses ONLY founding+member as “member stars”.
+     * - The map allows clicking ANY country, regardless of status.
      **********************************************************************/
     const COUNTRIES = [
       {
@@ -695,8 +478,15 @@
         capital: "Stanley",
         lat: -51.7,
         lng: -57.85,
-        summary: "Founding state of the Organisation of Free Nations.",
-        notes: "Marker location is approximate. Update lat/lng if you prefer."
+        region: "South Atlantic",
+        ofnRole: "Founding State",
+        alignment: "OFN Core",
+        short: "Founding state of the Organisation of Free Nations.",
+        details: [
+          { k: "Founding date", v: "—" },
+          { k: "Security posture", v: "—" },
+          { k: "Notes", v: "Edit this to your canon." }
+        ]
       },
       {
         id: "usa",
@@ -706,8 +496,15 @@
         capital: "Washington, D.C.",
         lat: 38.8951,
         lng: -77.0364,
-        summary: "Primary coordinating state (example text).",
-        notes: "Replace this description with your canon."
+        region: "North America",
+        ofnRole: "Member State",
+        alignment: "OFN",
+        short: "Member state.",
+        details: [
+          { k: "Delegation", v: "—" },
+          { k: "Treaty status", v: "Ratified" },
+          { k: "Notes", v: "Replace with your canon." }
+        ]
       },
       {
         id: "ireland",
@@ -717,8 +514,14 @@
         capital: "Dublin",
         lat: 53.3498,
         lng: -6.2603,
-        summary: "Member state.",
-        notes: "—"
+        region: "Europe",
+        ofnRole: "Member State",
+        alignment: "OFN",
+        short: "Member state.",
+        details: [
+          { k: "Delegation", v: "—" },
+          { k: "Notes", v: "—" }
+        ]
       },
       {
         id: "luxembourg",
@@ -728,8 +531,14 @@
         capital: "Luxembourg",
         lat: 49.6116,
         lng: 6.1319,
-        summary: "Observer participation.",
-        notes: "—"
+        region: "Europe",
+        ofnRole: "Observer",
+        alignment: "Cooperative",
+        short: "Observer participation.",
+        details: [
+          { k: "Access", v: "Observer sessions" },
+          { k: "Notes", v: "—" }
+        ]
       },
       {
         id: "brazil",
@@ -739,580 +548,536 @@
         capital: "Brasília",
         lat: -15.7939,
         lng: -47.8828,
-        summary: "Neutral / non-aligned (example).",
-        notes: "—"
+        region: "South America",
+        ofnRole: "—",
+        alignment: "Non-aligned",
+        short: "Neutral / non-aligned.",
+        details: [
+          { k: "Notes", v: "—" }
+        ]
+      },
+      {
+        id: "switzerland",
+        name: "Switzerland",
+        flag: "🇨🇭",
+        status: "special",
+        capital: "Bern",
+        lat: 46.9480,
+        lng: 7.4474,
+        region: "Europe",
+        ofnRole: "Special Status",
+        alignment: "Special",
+        short: "Special status (example).",
+        details: [
+          { k: "Notes", v: "Use “special” for your ‘something special’ category." }
+        ]
       }
     ];
 
     /**********************************************************************
-     * UI + LOGIC (standalone; no backend)
+     * Utilities
      **********************************************************************/
-    const bootStartedAt = Date.now();
-
     const el = (id) => document.getElementById(id);
-    const intro = el("intro");
-    const app = el("app");
-
-    const rosterEl = el("roster");
-    const searchEl = el("search");
-    const filterEl = el("filter");
-    const modeBtn = el("modeBtn");
-    const fitBtn = el("fitBtn");
-
-    const hudSelected = el("hudSelected");
-    const hudStatus = el("hudStatus");
-    const hudMode = el("hudMode");
-
-    const detailFlag = el("detailFlag");
-    const detailName = el("detailName");
-    const detailStatus = el("detailStatus");
-    const detailBody = el("detailBody");
-    const detailHint = el("detailHint");
-
-    const countShown = el("countShown");
-    const countTotal = el("countTotal");
-
-    const netState = el("netState");
-    const tileWarn = el("tileWarn");
-
-    const enterBtn = el("enterBtn");
-    const skipBtn = el("skipBtn");
-    const replayIntro = el("replayIntro");
-
-    const ringCanvas = el("ringCanvas");
-    const ringCount = el("ringCount");
-    const ringIntegrity = el("ringIntegrity");
-    const bootTime = el("bootTime");
+    const escapeHTML = (s) => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 
     const statusLabel = (s) => ({
       founding: "Founding",
       member: "Member",
       observer: "Observer",
+      special: "Special",
       neutral: "Neutral"
     }[s] || "Unknown");
 
-    const statusColor = (s) => ({
-      founding: getComputedStyle(document.documentElement).getPropertyValue("--founding").trim(),
-      member: getComputedStyle(document.documentElement).getPropertyValue("--ofn").trim(),
-      observer: getComputedStyle(document.documentElement).getPropertyValue("--observer").trim(),
-      neutral: "rgba(170,195,235,.55)"
-    }[s] || "rgba(200,220,255,.55)");
+    function statusColor(s){
+      const css = getComputedStyle(document.documentElement);
+      const blue2 = css.getPropertyValue("--blue2").trim();
+      const gold = css.getPropertyValue("--gold").trim();
+      const orange = css.getPropertyValue("--orange").trim();
+      const teal = css.getPropertyValue("--teal").trim();
+      const gray = css.getPropertyValue("--gray").trim();
+      return ({
+        founding: gold,
+        member: blue2,
+        observer: orange,
+        special: teal,
+        neutral: gray
+      }[s] || gray);
+    }
 
-    const statusTagClass = (s) => ({
-      founding: "founding",
-      member: "ofn",
-      observer: "observer",
-      neutral: "neutral"
-    }[s] || "neutral");
+    function badgeClass(s){
+      return ({
+        founding: "founding",
+        member: "member",
+        observer: "observer",
+        special: "special",
+        neutral: "neutral"
+      }[s] || "neutral");
+    }
 
-    // View mode affects styling emphasis
-    let viewMode = "neutral"; // "neutral" | "member"
-    let selectedId = null;
-
-    // --- Safe-fail intro timeout (prevents “infinite initializing”) ---
-    const HARD_INTRO_TIMEOUT_MS = 4500;
-    let introAutoReady = false;
-
-    // --- Map ---
+    /**********************************************************************
+     * Map setup
+     **********************************************************************/
     let map, tileLayer;
     const markersById = new Map();
-    const markerGroup = L.layerGroup();
+    const layerGroup = L.layerGroup();
 
-    function setMode(nextMode){
-      viewMode = nextMode;
-      hudMode.textContent = (viewMode === "member") ? "Member" : "Neutral";
-      modeBtn.textContent = (viewMode === "member") ? "Switch to Neutral View" : "Switch to Member View";
-      renderRoster();
-      refreshMarkersStyle();
-    }
+    // Member highlight behavior:
+    // ON: member+founding brighter, others subdued
+    // OFF: all equal
+    let memberHighlight = true;
 
-    function computeShownList(){
-      const q = (searchEl.value || "").trim().toLowerCase();
-      const f = filterEl.value;
-
-      return COUNTRIES.filter(c => {
-        const matchFilter = (f === "all") ? true : c.status === f;
-        if (!matchFilter) return false;
-        if (!q) return true;
-
-        const hay = `${c.name} ${c.capital || ""} ${c.status}`.toLowerCase();
-        return hay.includes(q);
-      });
-    }
-
-    function renderRoster(){
-      const list = computeShownList();
-      countTotal.textContent = String(COUNTRIES.length);
-      countShown.textContent = String(list.length);
-
-      rosterEl.innerHTML = "";
-      for (const c of list){
-        const row = document.createElement("div");
-        row.className = "row";
-        row.setAttribute("data-id", c.id);
-
-        const left = document.createElement("div");
-        left.className = "a";
-
-        const flag = document.createElement("div");
-        flag.className = "flag";
-        flag.textContent = c.flag || "🏳️";
-
-        const text = document.createElement("div");
-        text.style.minWidth = "0";
-
-        const name = document.createElement("div");
-        name.className = "name";
-        name.textContent = c.name;
-
-        const meta = document.createElement("div");
-        meta.className = "meta";
-        meta.textContent = c.capital ? `Capital: ${c.capital}` : "—";
-
-        text.appendChild(name);
-        text.appendChild(meta);
-
-        left.appendChild(flag);
-        left.appendChild(text);
-
-        const tag = document.createElement("div");
-        tag.className = `tag ${statusTagClass(c.status)}`;
-        tag.textContent = statusLabel(c.status);
-
-        row.appendChild(left);
-        row.appendChild(tag);
-
-        // Emphasis in Member View
-        if (viewMode === "member" && (c.status === "member" || c.status === "founding")){
-          row.style.boxShadow = "0 0 0 5px rgba(90, 170, 255, .10)";
-          row.style.borderColor = "rgba(160,200,255,.32)";
-        }
-
-        row.addEventListener("click", () => selectCountry(c.id, { pan: true, source: "roster" }));
-        rosterEl.appendChild(row);
-      }
-    }
-
-    function setHUD(country){
-      if (!country){
-        hudSelected.textContent = "—";
-        hudStatus.textContent = "—";
-        return;
-      }
-      hudSelected.textContent = country.name;
-      hudStatus.textContent = statusLabel(country.status);
-    }
-
-    function setDetail(country){
-      if (!country){
-        detailFlag.textContent = "🌐";
-        detailName.textContent = "No country selected";
-        detailStatus.textContent = "—";
-        detailHint.textContent = "Click a marker or roster entry";
-        detailBody.innerHTML = `
-          <div class="note">
-            This is intentionally “static-friendly”: everything is driven by the <code>COUNTRIES</code> list.
-            Add/remove countries there, push to GitHub, Netlify redeploys automatically.
-          </div>
-        `;
-        return;
-      }
-
-      detailHint.textContent = "Live data from COUNTRIES list";
-      detailFlag.textContent = country.flag || "🏳️";
-      detailName.textContent = country.name;
-      detailStatus.textContent = `${statusLabel(country.status)} • ${country.capital || "Capital N/A"}`;
-
-      const blocks = [
-        ["Status", statusLabel(country.status)],
-        ["Capital", country.capital || "—"],
-        ["Coordinates", `${country.lat.toFixed(4)}, ${country.lng.toFixed(4)}`],
-        ["Summary", country.summary || "—"],
-      ];
-
-      detailBody.innerHTML = blocks.map(([k,v]) => `
-        <div class="kv">
-          <div class="k">${escapeHTML(k)}</div>
-          <div class="v">${escapeHTML(String(v))}</div>
-        </div>
-      `).join("") + `
-        <div class="note">
-          <b>Notes:</b> ${escapeHTML(country.notes || "—")}
-        </div>
-      `;
-    }
-
-    function escapeHTML(s){
-      return s.replace(/[&<>"']/g, (c)=>({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
-    }
-
-    function refreshMarkersStyle(){
-      for (const c of COUNTRIES){
-        const m = markersById.get(c.id);
-        if (!m) continue;
-
-        const base = statusColor(c.status);
-
-        // Member View: highlight founding+member, dim others.
-        const isCore = (c.status === "member" || c.status === "founding");
-        const opacity = (viewMode === "member")
-          ? (isCore ? 0.95 : 0.35)
-          : 0.70;
-
-        const radius = (viewMode === "member")
-          ? (isCore ? 10 : 7)
-          : (c.status === "founding" ? 10 : 8);
-
-        m.setStyle({
-          color: base,
-          fillColor: base,
-          fillOpacity: opacity,
-          opacity: Math.min(1, opacity + 0.1),
-          weight: (selectedId === c.id) ? 3 : 2,
-          radius
-        });
-      }
-    }
-
-    function selectCountry(id, opts = { pan: false, source: "unknown" }){
-      const country = COUNTRIES.find(c => c.id === id);
-      if (!country) return;
-
-      selectedId = id;
-      setHUD(country);
-      setDetail(country);
-      refreshMarkersStyle();
-
-      const marker = markersById.get(id);
-      if (marker){
-        marker.bindPopup(`<b>${escapeHTML(country.flag || "🏳️")} ${escapeHTML(country.name)}</b><br/>${escapeHTML(statusLabel(country.status))}`).openPopup();
-        if (opts.pan && map){
-          map.flyTo([country.lat, country.lng], Math.max(map.getZoom(), 3), { duration: 0.7 });
-        }
-      }
-    }
-
-    function fitAll(){
-      if (!map) return;
-      const latlngs = COUNTRIES.map(c => [c.lat, c.lng]);
-      const bounds = L.latLngBounds(latlngs);
-      map.fitBounds(bounds.pad(0.28));
-    }
+    let selectedId = null;
 
     function initMap(){
       map = L.map("map", {
         zoomControl: true,
         worldCopyJump: true,
         preferCanvas: true
-      }).setView([20, 0], 2);
+      }).setView([22, 0], 2);
 
-      // Tile layer (no keys). Safe-fail with warning.
       tileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 6,
         minZoom: 2,
         attribution: "&copy; OpenStreetMap contributors"
-      });
+      }).addTo(map);
 
-      let tileLoadedOnce = false;
-      tileLayer.on("tileload", () => { tileLoadedOnce = true; });
-      tileLayer.on("tileerror", () => {
-        // don’t spam; we just show a warning if we never got a successful tile
-        setTimeout(() => {
-          if (!tileLoadedOnce) {
-            tileWarn.style.display = "block";
-            netState.textContent = "Tiles blocked/offline";
-          }
-        }, 450);
-      });
+      layerGroup.addTo(map);
 
-      tileLayer.addTo(map);
-
-      markerGroup.addTo(map);
-
+      // markers for all countries
       for (const c of COUNTRIES){
-        // Circle marker styling is controlled by refreshMarkersStyle()
+        const base = statusColor(c.status);
         const marker = L.circleMarker([c.lat, c.lng], {
-          radius: 8,
-          color: statusColor(c.status),
-          fillColor: statusColor(c.status),
+          radius: (c.status === "founding" || c.status === "special") ? 9 : 8,
+          color: base,
+          fillColor: base,
           weight: 2,
-          opacity: 0.8,
+          opacity: 0.9,
           fillOpacity: 0.65
         });
 
-        marker.on("click", () => selectCountry(c.id, { pan: false, source: "marker" }));
-        marker.addTo(markerGroup);
-
+        marker.on("click", () => selectCountry(c.id, { pan: false, openDrawer: true }));
+        marker.addTo(layerGroup);
         markersById.set(c.id, marker);
       }
 
-      // Basic “network” lines between founding+members (looks cool, still simple)
+      // Optional subtle “core network” lines between founding+members (EU-ish, light)
       const core = COUNTRIES.filter(c => c.status === "member" || c.status === "founding");
       if (core.length >= 2){
         const lines = [];
         for (let i = 0; i < core.length; i++){
-          for (let j = i + 1; j < core.length; j++){
-            if ((i + j) % 3 !== 0) continue; // intentionally sparse
-            lines.push([ [core[i].lat, core[i].lng], [core[j].lat, core[j].lng] ]);
+          for (let j = i+1; j < core.length; j++){
+            if ((i + j) % 4 !== 0) continue; // sparse
+            lines.push([[core[i].lat, core[i].lng], [core[j].lat, core[j].lng]]);
           }
         }
         if (lines.length){
           L.polyline(lines, {
-            color: "rgba(120,200,255,.35)",
+            color: "rgba(27,63,191,.35)",
             weight: 1.5,
-            opacity: 0.6,
+            opacity: 0.55,
             dashArray: "6 10"
           }).addTo(map);
         }
       }
 
-      refreshMarkersStyle();
+      applyMarkerStyles();
       fitAll();
     }
 
-    // --- Intro ring animation (member + founding) ---
-    function runRingAnimation(){
-      const canvas = ringCanvas;
-      const ctx = canvas.getContext("2d", { alpha: true });
-      if (!ctx) return;
+    function applyMarkerStyles(){
+      for (const c of COUNTRIES){
+        const m = markersById.get(c.id);
+        if (!m) continue;
 
+        const base = statusColor(c.status);
+        const isCore = (c.status === "member" || c.status === "founding");
+        const isSelected = (selectedId === c.id);
+
+        const dim = memberHighlight ? (!isCore ? 0.30 : 0.72) : 0.70;
+        const fill = memberHighlight ? (!isCore ? 0.22 : 0.62) : 0.60;
+
+        // “special” should remain visible even when highlight is on
+        const isSpecial = (c.status === "special");
+        const finalOpacity = isSpecial ? Math.max(dim, 0.62) : dim;
+        const finalFill = isSpecial ? Math.max(fill, 0.55) : fill;
+
+        m.setStyle({
+          color: base,
+          fillColor: base,
+          opacity: finalOpacity,
+          fillOpacity: finalFill,
+          weight: isSelected ? 3 : 2,
+          radius: isSelected ? 10 : ((c.status === "founding" || c.status === "special") ? 9 : 8),
+        });
+      }
+    }
+
+    function fitAll(){
+      if (!map) return;
+      const latlngs = COUNTRIES.map(c => [c.lat, c.lng]);
+      map.fitBounds(L.latLngBounds(latlngs).pad(0.22));
+    }
+
+    function zoomToSelected(){
+      const c = getSelected();
+      if (!c || !map) return;
+      map.flyTo([c.lat, c.lng], Math.max(map.getZoom(), 4), { duration: 0.8 });
+    }
+
+    /**********************************************************************
+     * Drawer / selection
+     **********************************************************************/
+    const drawer = el("drawer");
+    const drawerBody = el("drawerBody");
+
+    const selName = el("selName");
+    const selStatus = el("selStatus");
+
+    function getSelected(){
+      return COUNTRIES.find(c => c.id === selectedId) || null;
+    }
+
+    function setStatusLine(country){
+      if (!country){
+        selName.textContent = "No selection";
+        selStatus.textContent = "—";
+        return;
+      }
+      selName.textContent = country.name;
+      selStatus.textContent = statusLabel(country.status);
+    }
+
+    function setDrawer(country){
+      if (!country) return;
+
+      el("dFlag").textContent = country.flag || "🏳️";
+      el("dName").textContent = country.name;
+
+      const b = el("dBadge");
+      b.className = `badge ${badgeClass(country.status)}`;
+      b.textContent = statusLabel(country.status);
+
+      const mini = [];
+      if (country.capital) mini.push(`Capital: ${country.capital}`);
+      if (country.region) mini.push(country.region);
+      el("dMini").textContent = mini.join(" • ") || "—";
+
+      // Body: richer info (edit in COUNTRIES)
+      const blocks = [];
+
+      blocks.push(`
+        <div class="card">
+          <h3>Overview</h3>
+          <p class="note" style="margin:0;">${escapeHTML(country.short || "—")}</p>
+        </div>
+      `);
+
+      blocks.push(`
+        <div class="card">
+          <h3>Key Facts</h3>
+          <div class="grid2">
+            <div class="kv"><div class="k">Status</div><div class="v">${escapeHTML(statusLabel(country.status))}</div></div>
+            <div class="kv"><div class="k">OFN Role</div><div class="v">${escapeHTML(country.ofnRole || "—")}</div></div>
+            <div class="kv"><div class="k">Alignment</div><div class="v">${escapeHTML(country.alignment || "—")}</div></div>
+            <div class="kv"><div class="k">Coordinates</div><div class="v">${country.lat.toFixed(4)}, ${country.lng.toFixed(4)}</div></div>
+          </div>
+        </div>
+      `);
+
+      const detailRows = Array.isArray(country.details) ? country.details : [];
+      if (detailRows.length){
+        blocks.push(`
+          <div class="card">
+            <h3>Briefing Notes</h3>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              ${detailRows.map(r => `
+                <div class="kv">
+                  <div class="k">${escapeHTML(r.k || "—")}</div>
+                  <div class="v">${escapeHTML(r.v || "—")}</div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `);
+      }
+
+      blocks.push(`
+        <div class="card">
+          <h3>Editing tip</h3>
+          <p class="note" style="margin:0;">
+            Update this nation’s fields inside <code>COUNTRIES</code> in the HTML and push to GitHub —
+            Netlify will auto-redeploy.
+          </p>
+        </div>
+      `);
+
+      drawerBody.innerHTML = blocks.join("");
+    }
+
+    function openDrawer(){ drawer.classList.add("open"); }
+    function closeDrawer(){ drawer.classList.remove("open"); }
+
+    function selectCountry(id, opts = { pan:false, openDrawer:true }){
+      const c = COUNTRIES.find(x => x.id === id);
+      if (!c) return;
+
+      selectedId = id;
+      setStatusLine(c);
+      applyMarkerStyles();
+
+      const m = markersById.get(id);
+      if (m){
+        m.bindPopup(`<b>${escapeHTML(c.flag || "🏳️")} ${escapeHTML(c.name)}</b><br>${escapeHTML(statusLabel(c.status))}`).openPopup();
+      }
+
+      setDrawer(c);
+      if (opts.openDrawer) openDrawer();
+      if (opts.pan) zoomToSelected();
+    }
+
+    /**********************************************************************
+     * Filtering (search/filter affects which markers are “prominent”)
+     * - You wanted: scroll/zoom out shows specials in different color (done)
+     * - and: can click any nation (done)
+     * - filtering will hide/dim non-matching markers (still clickable if not fully hidden)
+     **********************************************************************/
+    const searchEl = el("search");
+    const filterEl = el("filter");
+
+    function applyFilter(){
+      const q = (searchEl.value || "").trim().toLowerCase();
+      const f = filterEl.value;
+
+      for (const c of COUNTRIES){
+        const m = markersById.get(c.id);
+        if (!m) continue;
+
+        const matchFilter = (f === "all") ? true : c.status === f;
+        const hay = `${c.name} ${c.capital || ""} ${c.region || ""} ${c.status}`.toLowerCase();
+        const matchQuery = !q ? true : hay.includes(q);
+        const match = matchFilter && matchQuery;
+
+        // “Hidden” markers still exist but are highly transparent; still clickable if you find them.
+        // If you want true hiding: set radius 0 + opacity 0 and disable pointer events (harder in Leaflet).
+        m.setStyle({
+          opacity: match ? undefined : 0.15,
+          fillOpacity: match ? undefined : 0.08,
+          radius: match ? undefined : 6
+        });
+      }
+
+      // then re-apply member highlight & selected emphasis on top
+      applyMarkerStyles();
+    }
+
+    /**********************************************************************
+     * Intro animation: ring of member flags as “stars”, then fly away
+     **********************************************************************/
+    const intro = el("intro");
+    const introCanvas = el("introCanvas");
+    const introCount = el("introCount");
+    const introLine = el("introLine");
+    const skipIntro = el("skipIntro");
+
+    function runIntro(){
+      const ctx = introCanvas.getContext("2d", { alpha: true });
+      if (!ctx){
+        finishIntro();
+        return;
+      }
+
+      const members = COUNTRIES.filter(c => c.status === "member" || c.status === "founding");
+      introCount.textContent = String(members.length);
+
+      // canvas sizing
       function resize(){
         const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-        canvas.width = Math.floor(canvas.clientWidth * dpr);
-        canvas.height = Math.floor(canvas.clientHeight * dpr);
+        introCanvas.width = Math.floor(introCanvas.clientWidth * dpr);
+        introCanvas.height = Math.floor(introCanvas.clientHeight * dpr);
         ctx.setTransform(dpr,0,0,dpr,0,0);
       }
       resize();
-      window.addEventListener("resize", resize, { passive: true });
+      window.addEventListener("resize", resize, { passive:true });
 
-      const core = COUNTRIES.filter(c => c.status === "member" || c.status === "founding");
-      ringCount.textContent = String(core.length);
-
-      const W = () => canvas.clientWidth;
-      const H = () => canvas.clientHeight;
-
-      const nodes = core.map((c, i) => ({
-        c,
-        i,
-        phase: Math.random() * Math.PI * 2,
-        tw: 0.35 + Math.random() * 0.65
+      // Pre-render “flag star” sprites (emoji flags)
+      const sprites = members.map(m => ({
+        c: m,
+        phase: Math.random()*Math.PI*2,
+        jitter: 0.8 + Math.random()*0.6,
       }));
 
-      let t0 = performance.now();
-      let done = false;
+      let start = performance.now();
+      let stage = "orbit"; // orbit -> fly -> done
+      const orbitDuration = 2.6;   // seconds
+      const flyDuration = 0.9;     // seconds
+      const total = orbitDuration + flyDuration;
 
-      function tick(now){
-        if (done) return;
+      introLine.textContent = "Aligning constellations…";
 
-        const t = (now - t0) / 1000;
-        const w = W(), h = H();
+      function draw(now){
+        const t = (now - start) / 1000;
+        const w = introCanvas.clientWidth;
+        const h = introCanvas.clientHeight;
+
         ctx.clearRect(0,0,w,h);
 
-        const cx = w * 0.5, cy = h * 0.52;
-        const R = Math.min(w, h) * 0.33;
+        const cx = w*0.5, cy = h*0.52;
+        const R = Math.min(w,h)*0.28;
 
-        // soft nebula
-        const g = ctx.createRadialGradient(cx, cy, 10, cx, cy, R*1.8);
-        g.addColorStop(0, "rgba(110,165,255,.14)");
-        g.addColorStop(0.55, "rgba(110,165,255,.04)");
-        g.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = g;
+        // soft EU-blue glow
+        const glow = ctx.createRadialGradient(cx, cy, 10, cx, cy, R*2.2);
+        glow.addColorStop(0, "rgba(43,109,255,.16)");
+        glow.addColorStop(0.5, "rgba(43,109,255,.06)");
+        glow.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = glow;
         ctx.fillRect(0,0,w,h);
 
         // ring
-        ctx.strokeStyle = "rgba(140,180,255,.24)";
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = "rgba(27,63,191,.22)";
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(cx, cy, R, 0, Math.PI*2);
         ctx.stroke();
 
-        // nodes + connecting arcs
-        const spin = t * 0.35;
-        const pulse = 0.5 + 0.5 * Math.sin(t * 1.8);
-
-        // compute positions
-        const pos = nodes.map((n, idx) => {
-          const a = spin + (idx / nodes.length) * Math.PI*2;
-          return { n, x: cx + Math.cos(a)*R, y: cy + Math.sin(a)*R, a };
-        });
-
-        // connections
-        ctx.globalAlpha = 0.8;
-        for (let i = 0; i < pos.length; i++){
-          for (let j = i+1; j < pos.length; j++){
-            if ((i+j) % 3 !== 0) continue;
-            const p1 = pos[i], p2 = pos[j];
-            ctx.strokeStyle = "rgba(120,200,255,.14)";
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.stroke();
-          }
-        }
-        ctx.globalAlpha = 1;
-
-        // nodes
-        for (const p of pos){
-          const isFounding = p.n.c.status === "founding";
-          const col = isFounding ? "rgba(210,230,255,.95)" : "rgba(103,183,255,.95)";
-          const glow = isFounding ? "rgba(210,230,255,.25)" : "rgba(103,183,255,.22)";
-          const r = isFounding ? 6.3 : 5.3;
-          const tw = 0.55 + 0.45 * Math.sin(t*2.2 + p.n.phase);
-
-          ctx.fillStyle = glow;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, r + 8*tw, 0, Math.PI*2);
-          ctx.fill();
-
-          ctx.fillStyle = col;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, r, 0, Math.PI*2);
-          ctx.fill();
-        }
-
-        // center star
-        ctx.fillStyle = `rgba(255,255,255,${0.14 + 0.10*pulse})`;
+        // center star (gold)
+        const pulse = 0.5 + 0.5*Math.sin(t*2.0);
+        ctx.fillStyle = `rgba(255,204,51,${0.22 + 0.12*pulse})`;
         ctx.beginPath();
-        ctx.arc(cx, cy, 3 + 2*pulse, 0, Math.PI*2);
+        ctx.arc(cx, cy, 4 + 2*pulse, 0, Math.PI*2);
         ctx.fill();
 
-        // integrity text vibe
-        ringIntegrity.textContent = (t < 1.2) ? "CALIBRATING" : (t < 2.4) ? "SYNCING" : "STABLE";
+        // stage calculation
+        let orbitT = Math.min(t / orbitDuration, 1);
+        let flyT = Math.max(0, (t - orbitDuration) / flyDuration);
+        flyT = Math.min(flyT, 1);
 
-        // auto “ready” after ~2.6s
-        if (t > 2.6) introAutoReady = true;
-
-        requestAnimationFrame(tick);
-      }
-      requestAnimationFrame(tick);
-
-      return () => { done = true; };
-    }
-
-    // --- Background starfield ---
-    function startStarfield(){
-      const c = el("starCanvas");
-      const ctx = c.getContext("2d", { alpha: true });
-      if (!ctx) return;
-
-      const stars = [];
-      function resize(){
-        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-        c.width = Math.floor(window.innerWidth * dpr);
-        c.height = Math.floor(window.innerHeight * dpr);
-        ctx.setTransform(dpr,0,0,dpr,0,0);
-        stars.length = 0;
-        const n = Math.floor((window.innerWidth * window.innerHeight) / 12000);
-        for (let i=0;i<n;i++){
-          stars.push({
-            x: Math.random()*window.innerWidth,
-            y: Math.random()*window.innerHeight,
-            r: 0.6 + Math.random()*1.6,
-            a: 0.15 + Math.random()*0.6,
-            v: 0.10 + Math.random()*0.25
-          });
+        if (t > orbitDuration && stage === "orbit"){
+          stage = "fly";
+          introLine.textContent = "Unifying — welcome.";
         }
-      }
-      resize();
-      window.addEventListener("resize", resize, { passive: true });
+        if (t > total){
+          finishIntro();
+          return;
+        }
 
-      let t0 = performance.now();
-      function tick(now){
-        const t = (now - t0)/1000;
-        ctx.clearRect(0,0,window.innerWidth, window.innerHeight);
+        // nodes
+        const n = sprites.length || 1;
+        const spin = t * 0.65;
 
-        for (const s of stars){
-          const tw = 0.6 + 0.4 * Math.sin(t*s.v + s.x*0.01);
-          ctx.globalAlpha = s.a * tw;
-          ctx.fillStyle = "white";
+        for (let i=0;i<sprites.length;i++){
+          const s = sprites[i];
+          const a0 = (i/n)*Math.PI*2 + spin;
+          const wob = 1 + 0.02*Math.sin(t*3.0 + s.phase);
+          let rr = R*wob;
+
+          // Fly-away behavior: push outward + fade
+          const flyOut = (stage === "fly") ? (1 + flyT*1.2) : 1;
+          rr *= flyOut;
+
+          const x = cx + Math.cos(a0)*rr;
+          const y = cy + Math.sin(a0)*rr;
+
+          const alpha = (stage === "fly") ? (1 - flyT) : 1;
+
+          // gold “star” glow behind flag
+          ctx.globalAlpha = 0.75 * alpha;
+          ctx.fillStyle = "rgba(255,204,51,.22)";
           ctx.beginPath();
-          ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+          ctx.arc(x, y, 16, 0, Math.PI*2);
           ctx.fill();
-        }
-        ctx.globalAlpha = 1;
 
-        requestAnimationFrame(tick);
+          // draw flag “texture”
+          ctx.globalAlpha = 1 * alpha;
+          ctx.font = "22px system-ui, Apple Color Emoji, Segoe UI Emoji";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(s.c.flag || "★", x, y);
+
+          // tiny orbit line shimmer
+          if (stage === "orbit" && (i % 3 === 0)){
+            ctx.globalAlpha = 0.25;
+            ctx.strokeStyle = "rgba(27,63,191,.18)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(cx, cy);
+            ctx.stroke();
+          }
+
+          ctx.globalAlpha = 1;
+        }
+
+        requestAnimationFrame(draw);
       }
-      requestAnimationFrame(tick);
+
+      requestAnimationFrame(draw);
     }
 
-    function showApp(){
+    function finishIntro(){
       intro.classList.add("hidden");
-      app.classList.remove("hidden");
-
-      // Initialize main UI (safe to call once)
-      renderRoster();
-      initMap();
-      setMode(viewMode);
-      setHUD(null);
-      setDetail(null);
-
-      // default select: first founding, else first country
-      const pick = COUNTRIES.find(c => c.status === "founding") || COUNTRIES[0];
-      if (pick) selectCountry(pick.id, { pan: false, source: "auto" });
+      setTimeout(() => intro.remove(), 700);
     }
 
-    function showIntro(){
-      app.classList.add("hidden");
-      intro.classList.remove("hidden");
-    }
-
+    /**********************************************************************
+     * Wire up UI
+     **********************************************************************/
     function wireUI(){
-      searchEl.addEventListener("input", () => renderRoster());
-      filterEl.addEventListener("change", () => renderRoster());
+      el("closeBtn").addEventListener("click", closeDrawer);
+      el("zoomBtn").addEventListener("click", zoomToSelected);
 
-      modeBtn.addEventListener("click", () => {
-        setMode(viewMode === "neutral" ? "member" : "neutral");
+      el("fitBtn").addEventListener("click", fitAll);
+
+      el("modeBtn").addEventListener("click", () => {
+        memberHighlight = !memberHighlight;
+        el("modeBtn").textContent = `Member Highlight: ${memberHighlight ? "ON" : "OFF"}`;
+        applyMarkerStyles();
+        applyFilter(); // keep filter result consistent
       });
 
-      fitBtn.addEventListener("click", () => fitAll());
+      searchEl.addEventListener("input", applyFilter);
+      filterEl.addEventListener("change", applyFilter);
 
-      enterBtn.addEventListener("click", () => showApp());
-      skipBtn.addEventListener("click", () => showApp());
+      skipIntro.addEventListener("click", finishIntro);
 
-      replayIntro.addEventListener("click", () => {
-        // simple replay: show intro overlay again
-        showIntro();
-        // re-run ring (it’s cosmetic)
-        introAutoReady = false;
-      });
-    }
-
-    // Prevent the classic “stuck at initializing” problem:
-    // if user does nothing, we still allow entering after a hard timeout.
-    function setIntroFailsafe(){
-      setTimeout(() => {
-        if (!intro.classList.contains("hidden") && !introAutoReady){
-          ringIntegrity.textContent = "STABLE";
-          ringCount.textContent = String(COUNTRIES.filter(c => c.status==="member" || c.status==="founding").length);
-          // Don’t auto-enter (some people like intros); just ensure button is usable.
+      // Close drawer when clicking outside (on map) if open and no popup clicked
+      document.addEventListener("click", (e) => {
+        if (!drawer.classList.contains("open")) return;
+        const withinDrawer = drawer.contains(e.target);
+        const withinTopbar = el("topbar").contains(e.target);
+        const isLeafletPopup = String(e.target.className || "").includes("leaflet");
+        if (!withinDrawer && !withinTopbar && !isLeafletPopup){
+          // don't close if user clicked a marker (Leaflet handles it)
+          // small delay to allow marker selection to open drawer
+          setTimeout(() => {
+            const c = getSelected();
+            // keep open if a selection exists (you can comment this if you want click-outside to always close)
+            if (!c) closeDrawer();
+          }, 0);
         }
-      }, HARD_INTRO_TIMEOUT_MS);
+      }, { capture:true });
+
+      // ESC closes drawer
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeDrawer();
+      });
     }
 
-    // Boot
+    /**********************************************************************
+     * Boot
+     **********************************************************************/
     (function boot(){
-      startStarfield();
       wireUI();
-      setIntroFailsafe();
+      initMap();
 
-      // start ring animation
-      runRingAnimation();
+      // Pick a friendly default selection? You said drawer should only show on click,
+      // so we do NOT auto-open. Statusline stays “No selection”.
+      setStatusLine(null);
 
-      const dt = new Date();
-      bootTime.textContent = dt.toLocaleString();
+      // Intro ring
+      runIntro();
 
-      // tiny “network state” hint (not authoritative, just friendly)
-      const online = (typeof navigator !== "undefined" && "onLine" in navigator) ? navigator.onLine : true;
-      netState.textContent = online ? "Online-ready" : "Offline";
-
-      window.addEventListener("online", () => netState.textContent = "Online-ready");
-      window.addEventListener("offline", () => netState.textContent = "Offline");
-
-      // Also: if tiles fail, tileWarn is shown in intro via tileerror. In-app it’s fine.
-      const ms = Date.now() - bootStartedAt;
-      el("footerLine").textContent = `OFN Dashboard • Static Build • Boot ${ms}ms`;
+      // If user is offline, OSM tiles may not load; but everything else still works.
+      // (No debug panels—just quiet behavior.)
     })();
   </script>
 </body>
