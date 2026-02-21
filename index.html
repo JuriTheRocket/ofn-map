@@ -34,8 +34,24 @@
       --r2:22px;
     }
 
+    :root[data-theme="night"]{
+      --bg:#070b16;
+      --card: rgba(255,255,255,.08);
+      --line: rgba(255,255,255,.14);
+      --line2: rgba(255,255,255,.20);
+      --text:#eef3ff;
+      --muted: rgba(238,243,255,.72);
+
+      --shadow: 0 12px 28px rgba(0,0,0,.40);
+      --shadow2: 0 8px 18px rgba(0,0,0,.32);
+    }
+
     *{ box-sizing:border-box; }
     html,body{ height:100%; margin:0; font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; color:var(--text); background:linear-gradient(180deg,#fff,var(--bg)); overflow:hidden; }
+    :root[data-theme="night"] body{
+      background: radial-gradient(900px 600px at 50% 15%, rgba(43,109,255,.12), transparent 60%),
+                  linear-gradient(180deg, #040611 0%, #070b16 55%, #0a1022 100%);
+    }
 
     #map{ position:fixed; inset:0; z-index:1; }
 
@@ -53,11 +69,18 @@
       opacity:0;
       transform: translateY(-6px);
       pointer-events:none;
-      transition: opacity .28s ease, transform .28s ease;
+      transition: opacity .28s ease, transform .28s ease, background .16s ease, border-color .16s ease;
     }
     #topbar.ready{
       opacity:1; transform: translateY(0);
       pointer-events:auto;
+    }
+
+    :root[data-theme="night"] #topbar,
+    :root[data-theme="night"] #statusline,
+    :root[data-theme="night"] #drawer{
+      background: rgba(10,14,28,.80) !important;
+      border-color: rgba(255,255,255,.14) !important;
     }
 
     .brand{ display:flex; align-items:center; gap:12px; min-width:260px; }
@@ -82,6 +105,7 @@
     .brand .sub{ margin:2px 0 0 0; font-size:12px; color:var(--muted); }
 
     .controls{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+
     input, select, button{
       border-radius:999px;
       border:1px solid var(--line);
@@ -90,7 +114,7 @@
       padding:9px 12px;
       outline:none;
       box-shadow:0 0 0 0 rgba(43,109,255,0);
-      transition: box-shadow .16s ease, border-color .16s ease, transform .10s ease;
+      transition: box-shadow .16s ease, border-color .16s ease, transform .10s ease, background .16s ease, color .16s ease;
     }
     input{ min-width: 220px; }
     input::placeholder{ color: rgba(81,96,127,.65); }
@@ -101,6 +125,15 @@
       border-color: rgba(27,63,191,.25);
       background: linear-gradient(180deg, rgba(43,109,255,.12), rgba(27,63,191,.06));
     }
+
+    :root[data-theme="night"] input,
+    :root[data-theme="night"] select,
+    :root[data-theme="night"] button{
+      background: rgba(255,255,255,.10);
+      color: var(--text);
+      border-color: rgba(255,255,255,.16);
+    }
+    :root[data-theme="night"] input::placeholder{ color: rgba(238,243,255,.55); }
 
     #statusline{
       position:fixed; z-index:25;
@@ -126,7 +159,7 @@
     #drawer{
       position:fixed; z-index:35;
       top:88px; left:16px; bottom:16px;
-      width:min(440px, calc(100vw - 32px));
+      width:min(460px, calc(100vw - 32px));
       background:rgba(255,255,255,.94);
       border:1px solid var(--line);
       border-radius:var(--r2);
@@ -145,6 +178,11 @@
       display:flex; gap:12px; align-items:center; justify-content:space-between;
       background: linear-gradient(180deg,#fff, rgba(247,249,255,.85));
     }
+    :root[data-theme="night"] .drawerHead{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border-bottom-color: rgba(255,255,255,.12);
+    }
+
     .drawerTitle{ display:flex; align-items:center; gap:10px; min-width:0; }
     .flagBig{
       width:44px; height:44px; border-radius:16px;
@@ -155,9 +193,16 @@
       font-size:22px;
       flex:0 0 auto;
     }
+    :root[data-theme="night"] .flagBig{ background: rgba(255,255,255,.10); }
+
     .titleText{ min-width:0; }
     .titleText h2{ margin:0; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .titleText .mini{ margin-top:2px; font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .titleText .mini{
+      margin-top:2px;
+      font-size:12px;
+      color:var(--muted);
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    }
 
     .badge{
       padding:4px 9px;
@@ -166,13 +211,27 @@
       background:#fff;
       font-size:12px;
       color:var(--muted);
+      white-space:nowrap;
     }
+    :root[data-theme="night"] .badge{
+      background: rgba(255,255,255,.10);
+      border-color: rgba(255,255,255,.16);
+      color: rgba(238,243,255,.78);
+    }
+
     .badge.member{ border-color: rgba(43,109,255,.40); color:#1033a3; }
     .badge.founding{ border-color: rgba(255,204,51,.60); color:#7c5b00; }
     .badge.observer{ border-color: rgba(242,153,74,.55); color:#7b3f00; }
     .badge.invite{ border-color: rgba(24,169,153,.55); color:#0b5b51; }
     .badge.conflict{ border-color: rgba(226,59,59,.55); color:#7b1414; }
-    .badge.neutral{ border-color: rgba(155,176,207,.60); color:#3a4c6c; }
+    .badge.hq{ border-color: rgba(27,63,191,.40); color:#1033a3; }
+
+    :root[data-theme="night"] .badge.member{ color: rgba(180,210,255,.90); }
+    :root[data-theme="night"] .badge.founding{ color: rgba(255,236,170,.92); }
+    :root[data-theme="night"] .badge.observer{ color: rgba(255,210,170,.92); }
+    :root[data-theme="night"] .badge.invite{ color: rgba(170,255,235,.92); }
+    :root[data-theme="night"] .badge.conflict{ color: rgba(255,180,190,.92); }
+    :root[data-theme="night"] .badge.hq{ color: rgba(180,210,255,.90); }
 
     .drawerActions{ display:flex; gap:8px; align-items:center; }
     .iconBtn{
@@ -182,6 +241,7 @@
       cursor:pointer;
       display:grid; place-items:center;
     }
+    :root[data-theme="night"] .iconBtn{ background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.16); color: var(--text); }
     .iconBtn:hover{ box-shadow: 0 0 0 4px rgba(43,109,255,.10); }
 
     .drawerBody{
@@ -197,6 +257,12 @@
       box-shadow: 0 6px 14px rgba(15,27,58,.06);
       padding:12px;
     }
+    :root[data-theme="night"] .card{
+      background: rgba(255,255,255,.08);
+      border-color: rgba(255,255,255,.14);
+      box-shadow: 0 10px 22px rgba(0,0,0,.22);
+    }
+
     .card h3{
       margin:0 0 8px 0;
       font-size:12px;
@@ -210,6 +276,10 @@
       border-radius:14px;
       padding:10px;
       background: linear-gradient(180deg,#fff,#fbfcff);
+    }
+    :root[data-theme="night"] .kv{
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.06));
+      border-color: rgba(255,255,255,.14);
     }
     .kv .k{
       font-size:11px;
@@ -243,17 +313,35 @@
       backdrop-filter: blur(10px);
       color: var(--muted) !important;
     }
+    :root[data-theme="night"] .leaflet-control-attribution{
+      background: rgba(10,14,28,.80) !important;
+      border-color: rgba(255,255,255,.14) !important;
+      color: rgba(238,243,255,.70) !important;
+    }
+
     .leaflet-control-zoom a{
       background: rgba(255,255,255,.92) !important;
       border: 1px solid var(--line) !important;
       color: var(--text) !important;
     }
+    :root[data-theme="night"] .leaflet-control-zoom a{
+      background: rgba(10,14,28,.80) !important;
+      border-color: rgba(255,255,255,.14) !important;
+      color: rgba(238,243,255,.92) !important;
+    }
+
     .leaflet-popup-content-wrapper, .leaflet-popup-tip{
       background: rgba(255,255,255,.96) !important;
       border: 1px solid var(--line) !important;
       box-shadow: var(--shadow2);
       color: var(--text) !important;
       backdrop-filter: blur(10px);
+    }
+    :root[data-theme="night"] .leaflet-popup-content-wrapper,
+    :root[data-theme="night"] .leaflet-popup-tip{
+      background: rgba(10,14,28,.88) !important;
+      border-color: rgba(255,255,255,.14) !important;
+      color: rgba(238,243,255,.92) !important;
     }
 
     @media (max-width: 720px){
@@ -275,7 +363,7 @@
       <div class="emblem" aria-hidden="true"></div>
       <div>
         <h1>Organisation of Free Nations</h1>
-        <div class="sub">Click any country to view real-world info</div>
+        <div class="sub">Interactive map</div>
       </div>
     </div>
 
@@ -290,6 +378,19 @@
         <option value="conflict">Conflict</option>
         <option value="neutral">Neutral</option>
       </select>
+      <select id="theme">
+        <option value="auto">Theme: Auto</option>
+        <option value="day">Theme: Day</option>
+        <option value="night">Theme: Night</option>
+      </select>
+      <select id="links">
+        <option value="off">Links: Off</option>
+        <option value="diplomatic">Links: Diplomatic</option>
+        <option value="trade">Links: Trade</option>
+        <option value="political">Links: Political</option>
+        <option value="all">Links: All</option>
+      </select>
+      <button id="focusBtn" type="button">Member focus: Off</button>
       <button id="fitBtn" type="button">Fit</button>
       <button id="resetBtn" type="button">Reset</button>
     </div>
@@ -306,10 +407,7 @@
         <div class="flagBig" id="dFlag">🌍</div>
         <div class="titleText">
           <h2 id="dName">—</h2>
-          <div class="mini">
-            <span class="badge neutral" id="dBadge">—</span>
-            <span id="dMini">—</span>
-          </div>
+          <div class="mini" id="dMini"></div>
         </div>
       </div>
       <div class="drawerActions">
@@ -342,15 +440,9 @@
 
     const NAME_ALIASES = new Map([
       ["United States", "United States of America"],
-      ["USA", "United States of America"],
-      ["Russian Federation", "Russia"],
-      ["Czechia", "Czech Republic"]
+      ["USA", "United States of America"]
     ]);
 
-    function stripTags(s){
-      return String(s || "").replace(/<[^>]*>/g, "").trim();
-    }
-    
     function canonicalName(name){
       const n = (name || "").trim();
       return NAME_ALIASES.get(n) || n;
@@ -400,18 +492,48 @@
       }[s] || "neutral");
     }
 
+    function escapeHTML(s){
+      return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+    }
+
+    function stripTags(s){
+      return String(s || "").replace(/<[^>]*>/g, "").trim();
+    }
+
     const el = (id) => document.getElementById(id);
-    const escapeHTML = (s) => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
     const normalize = (s) => (s||"").toLowerCase().replace(/\s+/g," ").trim();
 
-    let map, countriesLayer;
+    let map, countriesLayer, linksLayer = null;
     let selectedFeature = null;
     let selectedName = null;
+
+    let memberFocus = false;
 
     const topbar = el("topbar");
     const statusline = el("statusline");
     const drawer = el("drawer");
     const drawerBody = el("drawerBody");
+
+    function getAutoTheme(){
+      const h = new Date().getHours();
+      return (h >= 7 && h < 19) ? "day" : "night";
+    }
+
+    function applyTheme(mode){
+      const root = document.documentElement;
+      let actual = mode;
+      if (mode === "auto") actual = getAutoTheme();
+      if (actual === "night") root.setAttribute("data-theme", "night");
+      else root.removeAttribute("data-theme");
+      setTimeout(() => refreshLinks(), 0);
+    }
+
+    function startThemeClock(){
+      setInterval(() => {
+        const sel = el("theme");
+        if (sel && sel.value === "auto") applyTheme("auto");
+      }, 60 * 1000);
+    }
 
     function setStatusLine(name){
       if (!name){
@@ -427,15 +549,22 @@
     function openDrawer(){ drawer.classList.add("open"); }
     function closeDrawer(){ drawer.classList.remove("open"); }
 
-    function setDrawerHeader(name){
-      const s = statusOf(name);
-      el("dName").textContent = name;
-      el("dMini").textContent = (name === OFN.hq) ? "Headquarters" : "—";
-      el("dFlag").textContent = "🌍";
+    function makeBadge(text, cls){
+      return `<span class="badge ${cls}">${escapeHTML(text)}</span>`;
+    }
 
-      const b = el("dBadge");
-      b.className = `badge ${badgeClass(s)}`;
-      b.textContent = statusLabel(s);
+    function situationBadges(name){
+      const s = statusOf(name);
+      const badges = [];
+      badges.push(makeBadge(statusLabel(s), badgeClass(s)));
+      if (canonicalName(name) === OFN.hq) badges.push(makeBadge("Headquarters", "hq"));
+      return badges.join("");
+    }
+
+    function setDrawerHeader(name){
+      el("dName").textContent = name;
+      el("dFlag").textContent = "🌍";
+      el("dMini").innerHTML = situationBadges(name);
     }
 
     async function fetchWikiSummary(title){
@@ -456,26 +585,19 @@
         <div class="card">
           <h3>Status</h3>
           <div class="grid2">
-            <div class="kv"><div class="k">OFN</div><div class="v">${escapeHTML(statusLabel(s))}</div></div>
-            <div class="kv"><div class="k">Designation</div><div class="v">${escapeHTML((name===OFN.hq) ? "Headquarters" : "—")}</div></div>
+            <div class="kv"><div class="k">Designation</div><div class="v">${escapeHTML(statusLabel(s))}</div></div>
+            <div class="kv"><div class="k">OFN</div><div class="v">${escapeHTML((canonicalName(name) === OFN.hq) ? "Headquarters" : "—")}</div></div>
           </div>
         </div>
       `);
 
       let wiki = null;
-      let wikiTitle = name;
 
       try{
-        wiki = await fetchWikiSummary(wikiTitle);
-      }catch(e){
-        if (name === "Falkland Islands"){
-          try{ wiki = await fetchWikiSummary("Falkland Islands"); }catch(_){}
-        }
-        if (!wiki && name === "United States of America"){
-          try{ wiki = await fetchWikiSummary("United States"); wikiTitle = "United States"; }catch(_){}
-        }
-        if (!wiki && name === "Philippines"){
-          try{ wiki = await fetchWikiSummary("Philippines"); }catch(_){}
+        wiki = await fetchWikiSummary(name);
+      }catch(_){
+        if (name === "United States of America"){
+          try{ wiki = await fetchWikiSummary("United States"); }catch(__){}
         }
       }
 
@@ -487,32 +609,16 @@
         cards.push(`
           <div class="card">
             <h3>Overview</h3>
-            <p class="note" style="margin:0 0 10px 0;">${desc || ""}</p>
+            ${desc ? `<p class="note" style="margin:0 0 10px 0;">${desc}</p>` : ""}
             <p class="note" style="margin:0;">${extract || "—"}</p>
             ${page ? `<p style="margin:10px 0 0 0;"><a class="link" href="${page}" target="_blank" rel="noopener noreferrer">Open source</a></p>` : ""}
           </div>
         `);
-
-        const fields = [];
-        if (wiki.titles && wiki.titles.display) fields.push(["Article", stripTags(wiki.titles.display)]);
-        if (wiki.lang) fields.push(["Language", stripTags(wiki.lang)]);
-        if (wiki.type) fields.push(["Type", stripTags(wiki.type)]);
-
-        if (fields.length){
-          cards.push(`
-            <div class="card">
-              <h3>Source metadata</h3>
-              <div class="grid2">
-                ${fields.map(([k,v]) => `<div class="kv"><div class="k">${escapeHTML(k)}</div><div class="v">${escapeHTML(v)}</div></div>`).join("")}
-              </div>
-            </div>
-          `);
-        }
       } else {
         cards.push(`
           <div class="card">
             <h3>Overview</h3>
-            <p class="note" style="margin:0;">Could not load external summary for this country right now.</p>
+            <p class="note" style="margin:0;">Could not load external summary right now.</p>
           </div>
         `);
       }
@@ -520,53 +626,95 @@
       drawerBody.innerHTML = cards.join("");
     }
 
+    function currentFilter(){
+      return el("filter") ? el("filter").value : "all";
+    }
+
+    function matchesFilter(status){
+      const f = currentFilter();
+      if (f === "all") return true;
+      return status === f;
+    }
+
     function styleFeature(feature){
       const name = canonicalName(feature.properties?.name || "");
       const s = statusOf(name);
       const color = statusColor(s);
 
-      const base = {
-        color: "rgba(15,27,58,.18)",
-        weight: 1,
-        fillColor: color,
-        fillOpacity: 0.40
-      };
+      let fillOpacity = 0.40;
+      if (s === "member" || s === "founding") fillOpacity = 0.55;
+      if (s === "observer") fillOpacity = 0.45;
+      if (s === "invite") fillOpacity = 0.45;
+      if (s === "conflict") fillOpacity = 0.50;
 
-      if (s === "member" || s === "founding") base.fillOpacity = 0.55;
-      if (s === "observer") base.fillOpacity = 0.45;
-      if (s === "invite") base.fillOpacity = 0.45;
-      if (s === "conflict") base.fillOpacity = 0.50;
+      let opacity = 0.60;
+      let weight = 1;
 
-      const currentFilter = el("filter").value;
-      const matches = (currentFilter === "all") ? true : (s === currentFilter);
-
-      if (!matches){
-        base.fillOpacity = Math.min(base.fillOpacity, 0.12);
-        base.opacity = 0.15;
-      } else {
-        base.opacity = 0.6;
+      const match = matchesFilter(s);
+      if (!match){
+        fillOpacity = Math.min(fillOpacity, 0.12);
+        opacity = 0.15;
       }
 
-      return base;
+      if (memberFocus && selectedName){
+        const selStatus = statusOf(selectedName);
+        const selectedIsMember = (selStatus === "member" || selStatus === "founding");
+        if (selectedIsMember){
+          const thisIsMember = (s === "member" || s === "founding");
+          if (!thisIsMember){
+            fillOpacity = Math.min(fillOpacity, 0.08);
+            opacity = Math.min(opacity, 0.12);
+            weight = 1;
+          } else {
+            fillOpacity = Math.max(fillOpacity, 0.58);
+            opacity = Math.max(opacity, 0.75);
+            weight = 1.2;
+          }
+        }
+      }
+
+      return {
+        color: "rgba(15,27,58,.18)",
+        weight,
+        fillColor: color,
+        fillOpacity,
+        opacity
+      };
     }
 
     function setFeatureHover(layer, on){
-      const name = canonicalName(layer.feature.properties?.name || "");
-      const s = statusOf(name);
-      const color = statusColor(s);
+      if (!layer || !layer.feature) return;
+      if (selectedFeature === layer) return;
 
       if (on){
         layer.setStyle({
           weight: 2,
           color: "rgba(27,63,191,.35)",
-          fillOpacity: Math.min(0.72, (s === "member" || s === "founding") ? 0.68 : 0.58)
+          fillOpacity: Math.min(0.72, (statusOf(layer.feature.properties?.name || "") === "member") ? 0.66 : 0.58)
         });
       } else {
         layer.setStyle(styleFeature(layer.feature));
       }
     }
 
+    function refreshStyles(){
+      if (!countriesLayer) return;
+      countriesLayer.eachLayer((layer) => {
+        layer.setStyle(styleFeature(layer.feature));
+      });
+      if (selectedFeature){
+        selectedFeature.setStyle({
+          weight: 2.5,
+          color: "rgba(27,63,191,.55)",
+          fillOpacity: 0.78,
+          opacity: 0.9
+        });
+      }
+    }
+
     function selectLayer(layer){
+      if (!layer || !layer.feature) return;
+
       if (selectedFeature && selectedFeature !== layer){
         selectedFeature.setStyle(styleFeature(selectedFeature.feature));
       }
@@ -578,48 +726,41 @@
       layer.setStyle({
         weight: 2.5,
         color: "rgba(27,63,191,.55)",
-        fillOpacity: 0.78
+        fillOpacity: 0.78,
+        opacity: 0.9
       });
 
       setStatusLine(name);
       openDrawer();
+
+      const badges = situationBadges(name);
+      const popupHtml = `<b>${escapeHTML(name)}</b><div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">${badges}</div>`;
+      layer.bindPopup(popupHtml).openPopup();
+
       fillDrawerFromInternet(name).catch(() => {
         setDrawerHeader(name);
         drawerBody.innerHTML = `<div class="card"><h3>Overview</h3><p class="note" style="margin:0;">Could not load external summary right now.</p></div>`;
       });
+
+      refreshStyles();
+      refreshLinks();
     }
 
     function zoomToSelected(){
       if (!selectedFeature) return;
-      try{
-        map.fitBounds(selectedFeature.getBounds().pad(0.25));
-      }catch(_){}
-    }
-
-    function refilter(){
-      if (!countriesLayer) return;
-      countriesLayer.eachLayer((layer) => {
-        layer.setStyle(styleFeature(layer.feature));
-      });
-      if (selectedFeature){
-        selectedFeature.setStyle({
-          weight: 2.5,
-          color: "rgba(27,63,191,.55)",
-          fillOpacity: 0.78
-        });
-      }
+      try{ map.fitBounds(selectedFeature.getBounds().pad(0.25)); }catch(_){}
     }
 
     function findCountryLayerByName(query){
       const q = normalize(canonicalName(query));
       if (!q || !countriesLayer) return null;
 
-      let best = null;
+      let exact = null;
       countriesLayer.eachLayer((layer) => {
         const name = normalize(canonicalName(layer.feature.properties?.name || ""));
-        if (name === q) best = layer;
+        if (name === q) exact = layer;
       });
-      if (best) return best;
+      if (exact) return exact;
 
       let partial = null;
       countriesLayer.eachLayer((layer) => {
@@ -629,11 +770,281 @@
       return partial;
     }
 
+    function centroidOfLayer(layer){
+      const b = layer.getBounds();
+      const c = b.getCenter();
+      return [c.lat, c.lng];
+    }
+
+    function memberCentroids(){
+      const out = [];
+      if (!countriesLayer) return out;
+
+      countriesLayer.eachLayer((layer) => {
+        const nm = canonicalName(layer.feature?.properties?.name || "");
+        const st = statusOf(nm);
+        if (st === "member" || st === "founding"){
+          out.push({ name: nm, latlng: centroidOfLayer(layer) });
+        }
+      });
+
+      return out;
+    }
+
+    function linkStyle(kind){
+      const night = document.documentElement.getAttribute("data-theme") === "night";
+
+      if (kind === "diplomatic"){
+        return {
+          color: night ? "rgba(160,200,255,.45)" : "rgba(27,63,191,.45)",
+          weight: 2,
+          opacity: 0.75,
+          dashArray: "6 10"
+        };
+      }
+      if (kind === "trade"){
+        return {
+          color: night ? "rgba(120,255,220,.38)" : "rgba(24,169,153,.45)",
+          weight: 2,
+          opacity: 0.70,
+          dashArray: "2 10"
+        };
+      }
+      return {
+        color: night ? "rgba(255,210,120,.42)" : "rgba(255,204,51,.55)",
+        weight: 2.4,
+        opacity: 0.75
+      };
+    }
+
+    function buildLinks(kind){
+      if (!map) return;
+
+      if (linksLayer){
+        linksLayer.remove();
+        linksLayer = null;
+      }
+      if (kind === "off") return;
+
+      const nodes = memberCentroids();
+      if (nodes.length < 2) return;
+
+      const groups = [];
+      const add = (a, b, k) => groups.push({ a, b, k });
+
+      for (let i = 0; i < nodes.length; i++){
+        for (let j = i + 1; j < nodes.length; j++){
+          if ((i + j) % 3 !== 0) continue;
+          if (kind === "all"){
+            add(nodes[i], nodes[j], "diplomatic");
+            if ((i + j) % 2 === 0) add(nodes[i], nodes[j], "trade");
+            if ((i + j) % 4 === 0) add(nodes[i], nodes[j], "political");
+          } else {
+            add(nodes[i], nodes[j], kind);
+          }
+        }
+      }
+
+      linksLayer = L.layerGroup();
+      for (const g of groups){
+        const line = L.polyline([g.a.latlng, g.b.latlng], linkStyle(g.k));
+        line.addTo(linksLayer);
+      }
+      linksLayer.addTo(map);
+    }
+
+    function refreshLinks(){
+      const sel = el("links");
+      if (!sel) return;
+      buildLinks(sel.value);
+    }
+
+    function iso2FromName(name){
+      const n = canonicalName(name);
+      const mapIso = new Map([
+        ["Luxembourg","LU"],
+        ["Falkland Islands","FK"],
+        ["Israel","IL"],
+        ["United States of America","US"],
+        ["Philippines","PH"],
+        ["Brazil","BR"]
+      ]);
+      return mapIso.get(n) || null;
+    }
+
+    function twemojiFlagUrlFromISO2(iso2){
+      const A = "A".codePointAt(0);
+      const cps = iso2.toUpperCase().split("").map(ch => (0x1F1E6 + (ch.codePointAt(0) - A)).toString(16));
+      return `https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/${cps.join("-")}.png`;
+    }
+
+    function loadImage(url){
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    function drawStar(ctx, cx, cy, spikes, outerR, innerR){
+      let rot = Math.PI / 2 * 3;
+      const step = Math.PI / spikes;
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - outerR);
+      for (let i = 0; i < spikes; i++){
+        ctx.lineTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
+        rot += step;
+        ctx.lineTo(cx + Math.cos(rot) * innerR, cy + Math.sin(rot) * innerR);
+        rot += step;
+      }
+      ctx.closePath();
+    }
+
+    async function runIntroAnimation(){
+      const intro = el("intro");
+      const canvas = el("introCanvas");
+      const ctx = canvas.getContext("2d", { alpha: true });
+      if (!ctx){
+        finishIntro();
+        return;
+      }
+
+      function resize(){
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        canvas.width = Math.floor(canvas.clientWidth * dpr);
+        canvas.height = Math.floor(canvas.clientHeight * dpr);
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+      }
+      resize();
+      window.addEventListener("resize", resize, { passive:true });
+
+      const members = Array.from(OFN.members);
+      const nodes = [];
+      for (const name of members){
+        const iso2 = iso2FromName(name);
+        let img = null;
+        if (iso2){
+          try{ img = await loadImage(twemojiFlagUrlFromISO2(iso2)); } catch(_){ img = null; }
+        }
+        nodes.push({ name, iso2, img, phase: Math.random()*Math.PI*2 });
+      }
+
+      const orbitSeconds = 2.0;
+      const flySeconds = 0.7;
+      const fadeInSeconds = 0.55;
+      const total = orbitSeconds + flySeconds + fadeInSeconds;
+
+      let t0 = performance.now();
+
+      function tick(now){
+        const t = (now - t0)/1000;
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+
+        ctx.clearRect(0,0,w,h);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0,0,w,h);
+
+        const cx = w*0.5, cy = h*0.5;
+        const R = Math.min(w,h)*0.26;
+
+        const orbitT = Math.min(1, t / orbitSeconds);
+        const flyT = Math.max(0, Math.min(1, (t - orbitSeconds)/flySeconds));
+        const fadeT = Math.max(0, Math.min(1, (t - orbitSeconds - flySeconds)/fadeInSeconds));
+
+        ctx.strokeStyle = "rgba(27,63,191,.16)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, 0, Math.PI*2);
+        ctx.stroke();
+
+        const pulse = 0.5 + 0.5*Math.sin(t*2.2);
+        ctx.fillStyle = `rgba(255,204,51,${0.18 + 0.10*pulse})`;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4 + 2*pulse, 0, Math.PI*2);
+        ctx.fill();
+
+        const n = Math.max(1, nodes.length);
+        const spin = t * 0.9;
+
+        for (let i=0;i<nodes.length;i++){
+          const node = nodes[i];
+          const a = (i/n)*Math.PI*2 + spin;
+          const wob = 1 + 0.02*Math.sin(t*2.8 + node.phase);
+          let rr = R * wob;
+
+          let x = cx + Math.cos(a)*rr;
+          let y = cy + Math.sin(a)*rr;
+
+          let alpha = Math.min(1, 0.10 + orbitT*0.90);
+
+          if (flyT > 0){
+            const dir = (i % 2 === 0) ? 1 : -1;
+            x += dir * flyT * (w*0.58);
+            y += (Math.sin(a)*flyT) * (h*0.10);
+            alpha *= (1 - flyT);
+          }
+
+          ctx.save();
+
+          ctx.globalAlpha = 0.70 * alpha;
+          ctx.fillStyle = "rgba(255,204,51,.22)";
+          drawStar(ctx, x, y, 5, 18, 8);
+          ctx.fill();
+
+          ctx.globalAlpha = 0.45 * alpha;
+          ctx.strokeStyle = "rgba(27,63,191,.14)";
+          ctx.lineWidth = 1;
+          drawStar(ctx, x, y, 5, 18, 8);
+          ctx.stroke();
+
+          ctx.globalAlpha = 1.0 * alpha;
+          if (node.img){
+            const size = 22;
+            ctx.drawImage(node.img, x - size/2, y - size/2, size, size);
+          } else {
+            ctx.fillStyle = "rgba(15,27,58,.92)";
+            ctx.font = "14px system-ui";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText((node.iso2 || node.name.slice(0,2).toUpperCase()), x, y);
+          }
+
+          ctx.restore();
+        }
+
+        topbar.classList.toggle("ready", fadeT > 0.05);
+        statusline.classList.toggle("ready", fadeT > 0.20);
+
+        if (t < total){
+          requestAnimationFrame(tick);
+        } else {
+          finishIntro();
+        }
+      }
+
+      requestAnimationFrame(tick);
+
+      function finishIntro(){
+        intro.classList.add("hidden");
+        setTimeout(() => intro.remove(), 600);
+        topbar.classList.add("ready");
+        statusline.classList.add("ready");
+      }
+    }
+
     function initMap(){
       map = L.map("map", {
         zoomControl: false,
         worldCopyJump: true,
-        preferCanvas: true
+        preferCanvas: true,
+        minZoom: 2,
+        maxZoom: 7,
+        maxBounds: L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180)),
+        maxBoundsViscosity: 1.0
       }).setView([22, 0], 2);
 
       L.control.zoom({ position: "bottomright" }).addTo(map);
@@ -663,10 +1074,15 @@
           if (bounds && bounds.isValid()) map.fitBounds(bounds.pad(0.02));
 
           wireUI();
+          applyTheme("auto");
+          startThemeClock();
+          buildLinks("off");
           runIntroAnimation();
         })
         .catch(() => {
           wireUI();
+          applyTheme("auto");
+          startThemeClock();
           runIntroAnimation();
         });
     }
@@ -679,20 +1095,45 @@
         if (countriesLayer){
           const b = countriesLayer.getBounds();
           if (b && b.isValid()) map.fitBounds(b.pad(0.02));
+        } else {
+          map.setView([22,0], 2);
         }
       });
 
       el("resetBtn").addEventListener("click", () => {
         el("search").value = "";
         el("filter").value = "all";
-        refilter();
+        el("links").value = "off";
+        el("theme").value = "auto";
+        memberFocus = false;
+        el("focusBtn").textContent = "Member focus: Off";
         closeDrawer();
         selectedName = null;
         selectedFeature = null;
         setStatusLine(null);
+        refreshStyles();
+        refreshLinks();
+        applyTheme("auto");
+        if (map) map.closePopup();
       });
 
-      el("filter").addEventListener("change", refilter);
+      el("filter").addEventListener("change", () => {
+        refreshStyles();
+      });
+
+      el("theme").addEventListener("change", (e) => {
+        applyTheme(e.target.value);
+      });
+
+      el("links").addEventListener("change", () => {
+        buildLinks(el("links").value);
+      });
+
+      el("focusBtn").addEventListener("click", () => {
+        memberFocus = !memberFocus;
+        el("focusBtn").textContent = `Member focus: ${memberFocus ? "On" : "Off"}`;
+        refreshStyles();
+      });
 
       const searchEl = el("search");
       const doSearch = () => {
@@ -707,194 +1148,25 @@
       searchEl.addEventListener("keydown", (e) => {
         if (e.key === "Enter") doSearch();
       });
-      searchEl.addEventListener("input", () => {
-        // no restriction: search is for any nation
-      });
 
       window.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeDrawer();
       });
+
+      document.addEventListener("click", (e) => {
+        if (!drawer.classList.contains("open")) return;
+        const withinDrawer = drawer.contains(e.target);
+        const withinTopbar = topbar.contains(e.target);
+        const cls = String(e.target.className || "");
+        const isLeaflet = cls.includes("leaflet");
+        if (!withinDrawer && !withinTopbar && !isLeaflet){
+          // keep open unless you want click-outside to close; leaving open feels more “dashboard”
+        }
+      }, { capture:true });
     }
 
-function iso2FromName(name){
-  const n = canonicalName(name);
-  const map = new Map([
-    ["Luxembourg","LU"],
-    ["Falkland Islands","FK"],
-    ["Israel","IL"],
-    ["United States of America","US"],
-    ["Philippines","PH"],
-    ["Brazil","BR"]
-  ]);
-  return map.get(n) || null;
-}
-
-function twemojiFlagUrlFromISO2(iso2){
-  const A = "A".codePointAt(0);
-  const cps = iso2.toUpperCase().split("").map(ch => (0x1F1E6 + (ch.codePointAt(0) - A)).toString(16));
-  return `https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/${cps.join("-")}.png`;
-}
-
-function loadImage(url){
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = url;
-  });
-}
-
-function drawStar(ctx, cx, cy, spikes, outerR, innerR){
-  let rot = Math.PI / 2 * 3;
-  const step = Math.PI / spikes;
-
-  ctx.beginPath();
-  ctx.moveTo(cx, cy - outerR);
-  for (let i = 0; i < spikes; i++){
-    ctx.lineTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
-    rot += step;
-    ctx.lineTo(cx + Math.cos(rot) * innerR, cy + Math.sin(rot) * innerR);
-    rot += step;
-  }
-  ctx.closePath();
-}
-
-async function runIntroAnimation(){
-  const intro = el("intro");
-  const canvas = el("introCanvas");
-  const ctx = canvas.getContext("2d", { alpha: true });
-  if (!ctx){
-    finishIntro();
-    return;
-  }
-
-  function resize(){
-    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-    canvas.width = Math.floor(canvas.clientWidth * dpr);
-    canvas.height = Math.floor(canvas.clientHeight * dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-  }
-  resize();
-  window.addEventListener("resize", resize, { passive:true });
-
-  const members = Array.from(OFN.members);
-  const nodes = [];
-  for (const name of members){
-    const iso2 = iso2FromName(name);
-    let img = null;
-    if (iso2){
-      try{ img = await loadImage(twemojiFlagUrlFromISO2(iso2)); } catch(_){ img = null; }
-    }
-    nodes.push({ name, iso2, img, phase: Math.random()*Math.PI*2 });
-  }
-
-  const orbitSeconds = 2.0;
-  const flySeconds = 0.7;
-  const fadeInSeconds = 0.55;
-  const total = orbitSeconds + flySeconds + fadeInSeconds;
-
-  let t0 = performance.now();
-
-  function tick(now){
-    const t = (now - t0)/1000;
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
-
-    ctx.clearRect(0,0,w,h);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0,0,w,h);
-
-    const cx = w*0.5, cy = h*0.5;
-    const R = Math.min(w,h)*0.26;
-
-    const orbitT = Math.min(1, t / orbitSeconds);
-    const flyT = Math.max(0, Math.min(1, (t - orbitSeconds)/flySeconds));
-    const fadeT = Math.max(0, Math.min(1, (t - orbitSeconds - flySeconds)/fadeInSeconds));
-
-    ctx.strokeStyle = "rgba(27,63,191,.16)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(cx, cy, R, 0, Math.PI*2);
-    ctx.stroke();
-
-    const pulse = 0.5 + 0.5*Math.sin(t*2.2);
-    ctx.fillStyle = `rgba(255,204,51,${0.18 + 0.10*pulse})`;
-    ctx.beginPath();
-    ctx.arc(cx, cy, 4 + 2*pulse, 0, Math.PI*2);
-    ctx.fill();
-
-    const n = Math.max(1, nodes.length);
-    const spin = t * 0.9;
-
-    for (let i=0;i<nodes.length;i++){
-      const node = nodes[i];
-      const a = (i/n)*Math.PI*2 + spin;
-      const wob = 1 + 0.02*Math.sin(t*2.8 + node.phase);
-      let rr = R * wob;
-
-      let x = cx + Math.cos(a)*rr;
-      let y = cy + Math.sin(a)*rr;
-
-      let alpha = Math.min(1, 0.10 + orbitT*0.90);
-
-      if (flyT > 0){
-        const dir = (i % 2 === 0) ? 1 : -1;
-        x += dir * flyT * (w*0.58);
-        y += (Math.sin(a)*flyT) * (h*0.10);
-        alpha *= (1 - flyT);
-      }
-
-      ctx.save();
-
-      ctx.globalAlpha = 0.70 * alpha;
-      ctx.fillStyle = "rgba(255,204,51,.22)";
-      drawStar(ctx, x, y, 5, 18, 8);
-      ctx.fill();
-
-      ctx.globalAlpha = 0.45 * alpha;
-      ctx.strokeStyle = "rgba(27,63,191,.14)";
-      ctx.lineWidth = 1;
-      drawStar(ctx, x, y, 5, 18, 8);
-      ctx.stroke();
-
-      ctx.globalAlpha = 1.0 * alpha;
-      if (node.img){
-        const size = 22;
-        ctx.drawImage(node.img, x - size/2, y - size/2, size, size);
-      } else {
-        ctx.fillStyle = "rgba(15,27,58,.92)";
-        ctx.font = "14px system-ui";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText((node.iso2 || node.name.slice(0,2).toUpperCase()), x, y);
-      }
-
-      ctx.restore();
-    }
-
-    topbar.classList.toggle("ready", fadeT > 0.05);
-    statusline.classList.toggle("ready", fadeT > 0.20);
-
-    if (t < total){
-      requestAnimationFrame(tick);
-    } else {
-      finishIntro();
-    }
-  }
-
-  requestAnimationFrame(tick);
-
-  function finishIntro(){
-    intro.classList.add("hidden");
-    setTimeout(() => intro.remove(), 600);
-    topbar.classList.add("ready");
-    statusline.classList.add("ready");
-  }
-}
-
+    setStatusLine(null);
     initMap();
   </script>
 </body>
 </html>
-
