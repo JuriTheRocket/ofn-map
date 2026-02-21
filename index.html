@@ -3,9 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>OFN — European-Style Dashboard</title>
+  <title>Organisation of Free Nations</title>
 
-  <!-- Standalone static (no keys, no backend). Uses Leaflet + OSM tiles (no API key). -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -15,61 +14,60 @@
 
   <style>
     :root{
-      /* EU-ish, clean, bright */
-      --bg: #f5f7fb;
-      --bg2:#eef2fb;
+      --bg:#f5f7fb;
       --card:#ffffff;
       --line:#d7deef;
       --line2:#c9d2ea;
       --text:#0f1b3a;
       --muted:#51607f;
 
-      --blue:#1b3fbf;     /* EU-ish blue */
-      --blue2:#2b6dff;
-      --gold:#ffcc33;     /* EU stars */
-      --teal:#18a999;
-      --orange:#f2994a;
-      --gray:#8aa0c2;
+      --member:#1b3fbf;
+      --founding:#ffcc33;
+      --observer:#f2994a;
+      --invite:#18a999;
+      --conflict:#e23b3b;
+      --neutral:#9bb0cf;
 
       --shadow: 0 10px 26px rgba(15,27,58,.12);
       --shadow2: 0 6px 16px rgba(15,27,58,.10);
-
-      --r: 18px;
-      --r2: 22px;
+      --r:18px;
+      --r2:22px;
     }
 
-    *{ box-sizing: border-box; }
-    html,body{ height:100%; margin:0; font:14px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--text); background:linear-gradient(180deg,var(--bg),var(--bg2)); overflow:hidden; }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; margin:0; font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; color:var(--text); background:linear-gradient(180deg,#fff,var(--bg)); overflow:hidden; }
 
-    /* Top bar */
+    #map{ position:fixed; inset:0; z-index:1; }
+
     #topbar{
-      position: fixed;
-      z-index: 30;
-      left: 16px;
-      right: 16px;
-      top: 14px;
-      height: 60px;
-      background: rgba(255,255,255,.86);
-      border: 1px solid var(--line);
-      border-radius: var(--r2);
-      box-shadow: var(--shadow2);
+      position:fixed; z-index:30;
+      left:16px; right:16px; top:14px;
+      min-height:60px;
+      padding:10px 14px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+      background:rgba(255,255,255,.90);
+      border:1px solid var(--line);
+      border-radius:var(--r2);
+      box-shadow:var(--shadow2);
       backdrop-filter: blur(10px);
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      padding: 10px 14px;
-      gap: 12px;
+      opacity:0;
+      transform: translateY(-6px);
+      pointer-events:none;
+      transition: opacity .28s ease, transform .28s ease;
+    }
+    #topbar.ready{
+      opacity:1; transform: translateY(0);
+      pointer-events:auto;
     }
 
-    .brand{
-      display:flex; align-items:center; gap: 12px; min-width: 280px;
-    }
+    .brand{ display:flex; align-items:center; gap:12px; min-width:260px; }
     .emblem{
-      width: 38px; height: 38px; border-radius: 14px;
-      border: 1px solid var(--line);
+      width:38px; height:38px; border-radius:14px;
+      border:1px solid var(--line);
       background: radial-gradient(circle at 35% 30%, rgba(43,109,255,.35), rgba(27,63,191,.10) 55%, rgba(255,255,255,1) 100%);
       box-shadow: 0 0 0 6px rgba(27,63,191,.06);
       position:relative; overflow:hidden;
+      flex:0 0 auto;
     }
     .emblem:after{
       content:"";
@@ -80,22 +78,23 @@
     }
     @keyframes spin{ to{ transform:rotate(360deg);} }
 
-    .brand h1{ margin:0; font-size: 13px; letter-spacing:.18em; text-transform:uppercase; color: var(--blue); }
-    .brand .sub{ margin:2px 0 0 0; font-size: 12px; color: var(--muted); }
+    .brand h1{ margin:0; font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--member); }
+    .brand .sub{ margin:2px 0 0 0; font-size:12px; color:var(--muted); }
 
-    .controls{ display:flex; align-items:center; gap: 10px; flex-wrap: wrap; justify-content:flex-end; }
+    .controls{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
     input, select, button{
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: #fff;
-      color: var(--text);
-      padding: 9px 12px;
-      outline: none;
-      box-shadow: 0 0 0 0 rgba(43,109,255,0);
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      padding:9px 12px;
+      outline:none;
+      box-shadow:0 0 0 0 rgba(43,109,255,0);
       transition: box-shadow .16s ease, border-color .16s ease, transform .10s ease;
     }
+    input{ min-width: 220px; }
     input::placeholder{ color: rgba(81,96,127,.65); }
-    button{ cursor:pointer; background: linear-gradient(180deg, #ffffff, #f7f9ff); }
+    button{ cursor:pointer; background: linear-gradient(180deg,#fff,#f7f9ff); }
     button:hover{ border-color: var(--line2); box-shadow: 0 0 0 4px rgba(43,109,255,.10); }
     button:active{ transform: translateY(1px); }
     .primary{
@@ -103,239 +102,141 @@
       background: linear-gradient(180deg, rgba(43,109,255,.12), rgba(27,63,191,.06));
     }
 
-    /* Map */
-    #map{
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-    }
-
-    /* Light “EU” footer-ish badge */
     #statusline{
-      position: fixed;
-      z-index: 25;
-      left: 16px;
-      bottom: 16px;
-      background: rgba(255,255,255,.88);
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 10px 12px;
-      box-shadow: var(--shadow2);
+      position:fixed; z-index:25;
+      left:16px; bottom:16px;
+      background:rgba(255,255,255,.92);
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:10px 12px;
+      box-shadow:var(--shadow2);
       backdrop-filter: blur(10px);
-      display:flex;
-      gap: 10px;
-      align-items:center;
-      color: var(--muted);
+      display:flex; gap:10px; align-items:center;
+      color:var(--muted);
       max-width: calc(100vw - 32px);
+      opacity:0;
+      transform: translateY(6px);
+      pointer-events:none;
+      transition: opacity .28s ease, transform .28s ease;
     }
-    .pillDot{
-      width: 9px; height: 9px; border-radius: 50%;
-      background: var(--blue2);
-      box-shadow: 0 0 0 4px rgba(43,109,255,.12);
-    }
-    #statusline b{ color: var(--text); }
+    #statusline.ready{ opacity:1; transform: translateY(0); pointer-events:auto; }
+    .pillDot{ width:9px; height:9px; border-radius:50%; background:var(--member); box-shadow: 0 0 0 4px rgba(43,109,255,.12); }
+    #statusline b{ color:var(--text); }
 
-    /* Left drawer (only opens when you click a nation) */
     #drawer{
-      position: fixed;
-      z-index: 35;
-      top: 88px;
-      left: 16px;
-      bottom: 16px;
-      width: min(420px, calc(100vw - 32px));
-      background: rgba(255,255,255,.92);
-      border: 1px solid var(--line);
-      border-radius: var(--r2);
-      box-shadow: var(--shadow);
+      position:fixed; z-index:35;
+      top:88px; left:16px; bottom:16px;
+      width:min(440px, calc(100vw - 32px));
+      background:rgba(255,255,255,.94);
+      border:1px solid var(--line);
+      border-radius:var(--r2);
+      box-shadow:var(--shadow);
       backdrop-filter: blur(10px);
-      transform: translateX(-110%);
+      transform: translateX(-112%);
       transition: transform .22s ease;
       overflow:hidden;
-      display:flex;
-      flex-direction: column;
+      display:flex; flex-direction:column;
     }
     #drawer.open{ transform: translateX(0); }
 
     .drawerHead{
-      padding: 14px 14px 12px 14px;
-      border-bottom: 1px solid var(--line);
-      display:flex;
-      gap: 12px;
-      align-items:center;
-      justify-content: space-between;
-      background: linear-gradient(180deg, rgba(255,255,255,1), rgba(247,249,255,.85));
+      padding:14px 14px 12px 14px;
+      border-bottom:1px solid var(--line);
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      background: linear-gradient(180deg,#fff, rgba(247,249,255,.85));
     }
-    .drawerTitle{
-      display:flex; align-items:center; gap: 10px; min-width:0;
-    }
+    .drawerTitle{ display:flex; align-items:center; gap:10px; min-width:0; }
     .flagBig{
-      width: 44px; height: 44px; border-radius: 16px;
+      width:44px; height:44px; border-radius:16px;
       display:grid; place-items:center;
-      border: 1px solid var(--line);
-      background: #fff;
-      box-shadow: 0 0 0 6px rgba(27,63,191,.06);
-      font-size: 22px;
-      flex: 0 0 auto;
+      border:1px solid var(--line);
+      background:#fff;
+      box-shadow:0 0 0 6px rgba(27,63,191,.06);
+      font-size:22px;
+      flex:0 0 auto;
     }
     .titleText{ min-width:0; }
-    .titleText h2{ margin:0; font-size: 16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .titleText .mini{ margin-top:2px; font-size: 12px; color: var(--muted); display:flex; gap:8px; align-items:center; flex-wrap: wrap; }
+    .titleText h2{ margin:0; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .titleText .mini{ margin-top:2px; font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 
     .badge{
-      padding: 4px 9px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: #fff;
-      font-size: 12px;
-      color: var(--muted);
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;
+      font-size:12px;
+      color:var(--muted);
     }
-    .badge.founding{ border-color: rgba(255,204,51,.55); color: #7c5b00; }
-    .badge.member{ border-color: rgba(43,109,255,.40); color: #1033a3; }
-    .badge.observer{ border-color: rgba(242,153,74,.45); color: #7b3f00; }
-    .badge.special{ border-color: rgba(24,169,153,.45); color: #0b5b51; }
-    .badge.neutral{ border-color: rgba(138,160,194,.45); color: #3a4c6c; }
+    .badge.member{ border-color: rgba(43,109,255,.40); color:#1033a3; }
+    .badge.founding{ border-color: rgba(255,204,51,.60); color:#7c5b00; }
+    .badge.observer{ border-color: rgba(242,153,74,.55); color:#7b3f00; }
+    .badge.invite{ border-color: rgba(24,169,153,.55); color:#0b5b51; }
+    .badge.conflict{ border-color: rgba(226,59,59,.55); color:#7b1414; }
+    .badge.neutral{ border-color: rgba(155,176,207,.60); color:#3a4c6c; }
 
-    .drawerActions{ display:flex; gap: 8px; align-items:center; }
+    .drawerActions{ display:flex; gap:8px; align-items:center; }
     .iconBtn{
-      width: 38px; height: 38px; border-radius: 999px;
-      border: 1px solid var(--line);
-      background: #fff;
+      width:38px; height:38px; border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;
       cursor:pointer;
       display:grid; place-items:center;
     }
     .iconBtn:hover{ box-shadow: 0 0 0 4px rgba(43,109,255,.10); }
 
     .drawerBody{
-      padding: 12px 14px 14px 14px;
+      padding:12px 14px 14px 14px;
       overflow:auto;
-      display:flex;
-      flex-direction: column;
-      gap: 10px;
-      min-height: 0;
+      display:flex; flex-direction:column; gap:10px;
+      min-height:0;
     }
-
     .card{
-      border: 1px solid var(--line);
-      border-radius: var(--r);
-      background: #fff;
+      border:1px solid var(--line);
+      border-radius:var(--r);
+      background:#fff;
       box-shadow: 0 6px 14px rgba(15,27,58,.06);
-      padding: 12px;
+      padding:12px;
     }
     .card h3{
       margin:0 0 8px 0;
-      font-size: 12px;
+      font-size:12px;
       letter-spacing:.16em;
-      text-transform: uppercase;
-      color: var(--muted);
+      text-transform:uppercase;
+      color:var(--muted);
     }
-
-    .grid2{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
+    .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     .kv{
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 10px;
-      background: linear-gradient(180deg, #fff, #fbfcff);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px;
+      background: linear-gradient(180deg,#fff,#fbfcff);
     }
     .kv .k{
-      font-size: 11px;
+      font-size:11px;
       letter-spacing:.14em;
-      text-transform: uppercase;
-      color: var(--muted);
+      text-transform:uppercase;
+      color:var(--muted);
     }
-    .kv .v{
-      margin-top: 4px;
-      font-weight: 650;
-      color: var(--text);
-      overflow-wrap:anywhere;
-    }
-    .note{
-      color: var(--muted);
-      margin:0;
-    }
+    .kv .v{ margin-top:4px; font-weight:650; color:var(--text); overflow-wrap:anywhere; }
+    .note{ margin:0; color:var(--muted); }
+    .link{ color: var(--member); text-decoration: none; border-bottom: 1px dotted rgba(27,63,191,.35); }
+    .link:hover{ border-bottom-color: rgba(27,63,191,.75); }
 
-    /* Intro overlay: only the star-ring boot (no debug screen) */
     #intro{
-      position: fixed;
-      inset: 0;
-      z-index: 60;
-      display:grid;
-      place-items:center;
-      background: radial-gradient(900px 600px at 50% 35%, rgba(43,109,255,.18), transparent 60%),
-                  linear-gradient(180deg, #ffffff 0%, #f2f6ff 45%, #eef2fb 100%);
-      transition: opacity .35s ease, transform .35s ease;
+      position:fixed; inset:0; z-index:60;
+      background:#ffffff;
+      display:grid; place-items:center;
+      transition: opacity .28s ease;
     }
-    #intro.hidden{
-      opacity: 0;
-      pointer-events:none;
-      transform: translateY(-8px);
-    }
-    #intro .ringWrap{
-      width: min(760px, calc(100vw - 36px));
-      border-radius: 30px;
-      background: rgba(255,255,255,.85);
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      padding: 18px 18px 14px 18px;
-    }
-    #intro .row{
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 14px;
-      margin-bottom: 12px;
-    }
-    #intro .row .t{
-      display:flex; align-items:center; gap: 12px;
-    }
-    #intro .row .t h2{
-      margin:0;
-      font-size: 14px;
-      letter-spacing:.18em;
-      text-transform: uppercase;
-      color: var(--blue);
-    }
-    #intro .row .t .mini{
-      margin-top:2px;
-      font-size: 12px;
-      color: var(--muted);
-    }
-    #intro .row .meta{
-      font-size: 12px;
-      color: var(--muted);
-      display:flex;
-      gap: 10px;
-      align-items:center;
-      flex-wrap: wrap;
-      justify-content:flex-end;
-    }
-    #intro .canvasBox{
-      height: 300px;
-      border-radius: 24px;
-      border: 1px solid var(--line);
-      background: radial-gradient(700px 240px at 50% 30%, rgba(43,109,255,.10), transparent 60%),
-                  linear-gradient(180deg, #ffffff, #f7f9ff);
-      overflow:hidden;
-      position: relative;
-    }
-    #intro canvas{ position:absolute; inset:0; width:100%; height:100%; }
-    #intro .foot{
-      margin-top: 12px;
-      display:flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items:center;
-      color: var(--muted);
-      font-size: 12px;
+    #intro.hidden{ opacity:0; pointer-events:none; }
+    #introCanvas{
+      width:min(760px, calc(100vw - 36px));
+      height:360px;
+      display:block;
     }
 
-    /* Leaflet styling */
     .leaflet-control-attribution{
-      background: rgba(255,255,255,.86) !important;
+      background: rgba(255,255,255,.90) !important;
       border: 1px solid var(--line) !important;
       border-radius: 12px !important;
       box-shadow: var(--shadow2);
@@ -348,81 +249,49 @@
       color: var(--text) !important;
     }
     .leaflet-popup-content-wrapper, .leaflet-popup-tip{
-      background: rgba(255,255,255,.95) !important;
+      background: rgba(255,255,255,.96) !important;
       border: 1px solid var(--line) !important;
       box-shadow: var(--shadow2);
       color: var(--text) !important;
       backdrop-filter: blur(10px);
     }
 
-    /* Small screens */
     @media (max-width: 720px){
-      #topbar{ height:auto; padding: 10px; gap: 10px; }
-      .brand{ min-width: 0; }
-      .controls{ width: 100%; justify-content: flex-start; }
-      #drawer{ top: 96px; width: calc(100vw - 32px); }
-      .grid2{ grid-template-columns: 1fr; }
-      #intro .canvasBox{ height: 260px; }
+      #topbar{ left:12px; right:12px; }
+      #statusline{ left:12px; right:12px; max-width: calc(100vw - 24px); }
+      #drawer{ left:12px; width: calc(100vw - 24px); }
+      input{ min-width: 160px; }
+      .grid2{ grid-template-columns:1fr; }
+      #introCanvas{ height:300px; }
     }
   </style>
 </head>
 
 <body>
-  <!-- Intro: circle of stars (flags) -> fly away -> then app -->
-  <section id="intro" aria-label="Boot animation">
-    <div class="ringWrap">
-      <div class="row">
-        <div class="t">
-          <div class="emblem" aria-hidden="true"></div>
-          <div>
-            <h2>Organisation of Free Nations</h2>
-            <div class="mini">Unified member ring • standby…</div>
-          </div>
-        </div>
-        <div class="meta">
-          <span><b id="introCount">0</b> member stars</span>
-          <span style="display:flex;align-items:center;gap:8px;">
-            <span class="pillDot" style="background:var(--gold); box-shadow: 0 0 0 4px rgba(255,204,51,.18)"></span>
-            EU-style theme
-          </span>
-        </div>
-      </div>
-
-      <div class="canvasBox">
-        <canvas id="introCanvas"></canvas>
-      </div>
-
-      <div class="foot">
-        <span id="introLine">Aligning constellations…</span>
-        <button id="skipIntro" class="primary" type="button">Skip</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- App -->
-  <div id="map" aria-label="Map"></div>
+  <div id="map"></div>
 
   <div id="topbar" role="banner">
     <div class="brand">
       <div class="emblem" aria-hidden="true"></div>
       <div>
         <h1>Organisation of Free Nations</h1>
-        <div class="sub">European-style dashboard • click any nation to open details</div>
+        <div class="sub">Click any country to view real-world info</div>
       </div>
     </div>
 
     <div class="controls" role="toolbar" aria-label="Controls">
-      <input id="search" type="text" placeholder="Search nations…" spellcheck="false" />
+      <input id="search" type="text" placeholder="Search any country…" spellcheck="false" />
       <select id="filter">
         <option value="all">All statuses</option>
-        <option value="founding">Founding</option>
         <option value="member">Member</option>
+        <option value="founding">Founding</option>
         <option value="observer">Observer</option>
-        <option value="special">Special</option>
+        <option value="invite">Open invite</option>
+        <option value="conflict">Conflict</option>
         <option value="neutral">Neutral</option>
       </select>
-      <button id="modeBtn" type="button" title="Toggle highlight behavior">Member Highlight: ON</button>
       <button id="fitBtn" type="button">Fit</button>
+      <button id="resetBtn" type="button">Reset</button>
     </div>
   </div>
 
@@ -431,7 +300,6 @@
     <span><b id="selName">No selection</b> · <span id="selStatus">—</span></span>
   </div>
 
-  <!-- Drawer (left) -->
   <aside id="drawer" aria-label="Country details panel">
     <div class="drawerHead">
       <div class="drawerTitle">
@@ -444,17 +312,17 @@
           </div>
         </div>
       </div>
-
       <div class="drawerActions">
         <button class="iconBtn" id="zoomBtn" type="button" title="Zoom to country">⤢</button>
         <button class="iconBtn" id="closeBtn" type="button" title="Close">✕</button>
       </div>
     </div>
-
-    <div class="drawerBody" id="drawerBody">
-      <!-- Filled dynamically -->
-    </div>
+    <div class="drawerBody" id="drawerBody"></div>
   </aside>
+
+  <section id="intro" aria-label="Loading">
+    <canvas id="introCanvas"></canvas>
+  </section>
 
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -463,622 +331,517 @@
   ></script>
 
   <script>
-    /**********************************************************************
-     * EDIT THIS LIST IN GITHUB
-     * status: founding | member | observer | special | neutral
-     * - The intro ring uses ONLY founding+member as “member stars”.
-     * - The map allows clicking ANY country, regardless of status.
-     **********************************************************************/
-    const COUNTRIES = [
-      {
-        id: "falklands",
-        name: "Falkland Islands",
-        flag: "🇫🇰",
-        status: "founding",
-        capital: "Stanley",
-        lat: -51.7,
-        lng: -57.85,
-        region: "South Atlantic",
-        ofnRole: "Founding State",
-        alignment: "OFN Core",
-        short: "Founding state of the Organisation of Free Nations.",
-        details: [
-          { k: "Founding date", v: "—" },
-          { k: "Security posture", v: "—" },
-          { k: "Notes", v: "Edit this to your canon." }
-        ]
-      },
-      {
-        id: "usa",
-        name: "United States of America",
-        flag: "🇺🇸",
-        status: "member",
-        capital: "Washington, D.C.",
-        lat: 38.8951,
-        lng: -77.0364,
-        region: "North America",
-        ofnRole: "Member State",
-        alignment: "OFN",
-        short: "Member state.",
-        details: [
-          { k: "Delegation", v: "—" },
-          { k: "Treaty status", v: "Ratified" },
-          { k: "Notes", v: "Replace with your canon." }
-        ]
-      },
-      {
-        id: "ireland",
-        name: "Ireland",
-        flag: "🇮🇪",
-        status: "member",
-        capital: "Dublin",
-        lat: 53.3498,
-        lng: -6.2603,
-        region: "Europe",
-        ofnRole: "Member State",
-        alignment: "OFN",
-        short: "Member state.",
-        details: [
-          { k: "Delegation", v: "—" },
-          { k: "Notes", v: "—" }
-        ]
-      },
-      {
-        id: "luxembourg",
-        name: "Grand Duchy of Luxembourg",
-        flag: "🇱🇺",
-        status: "observer",
-        capital: "Luxembourg",
-        lat: 49.6116,
-        lng: 6.1319,
-        region: "Europe",
-        ofnRole: "Observer",
-        alignment: "Cooperative",
-        short: "Observer participation.",
-        details: [
-          { k: "Access", v: "Observer sessions" },
-          { k: "Notes", v: "—" }
-        ]
-      },
-      {
-        id: "brazil",
-        name: "Brazil",
-        flag: "🇧🇷",
-        status: "neutral",
-        capital: "Brasília",
-        lat: -15.7939,
-        lng: -47.8828,
-        region: "South America",
-        ofnRole: "—",
-        alignment: "Non-aligned",
-        short: "Neutral / non-aligned.",
-        details: [
-          { k: "Notes", v: "—" }
-        ]
-      },
-      {
-        id: "switzerland",
-        name: "Switzerland",
-        flag: "🇨🇭",
-        status: "special",
-        capital: "Bern",
-        lat: 46.9480,
-        lng: 7.4474,
-        region: "Europe",
-        ofnRole: "Special Status",
-        alignment: "Special",
-        short: "Special status (example).",
-        details: [
-          { k: "Notes", v: "Use “special” for your ‘something special’ category." }
-        ]
-      }
-    ];
+    const OFN = {
+      members: new Set(["Luxembourg","Falkland Islands","Israel","United States of America","Philippines","Brazil"]),
+      founding: new Set(["Falkland Islands"]),
+      observer: new Set(["China"]),
+      invite: new Set(["Japan"]),
+      conflict: new Set(["Germany"]),
+      hq: "Luxembourg"
+    };
 
-    /**********************************************************************
-     * Utilities
-     **********************************************************************/
-    const el = (id) => document.getElementById(id);
-    const escapeHTML = (s) => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+    const NAME_ALIASES = new Map([
+      ["United States", "United States of America"],
+      ["USA", "United States of America"],
+      ["Russian Federation", "Russia"],
+      ["Czechia", "Czech Republic"]
+    ]);
 
-    const statusLabel = (s) => ({
-      founding: "Founding",
-      member: "Member",
-      observer: "Observer",
-      special: "Special",
-      neutral: "Neutral"
-    }[s] || "Unknown");
+    function canonicalName(name){
+      const n = (name || "").trim();
+      return NAME_ALIASES.get(n) || n;
+    }
+
+    function statusOf(name){
+      const n = canonicalName(name);
+      if (OFN.founding.has(n)) return "founding";
+      if (OFN.members.has(n)) return "member";
+      if (OFN.observer.has(n)) return "observer";
+      if (OFN.invite.has(n)) return "invite";
+      if (OFN.conflict.has(n)) return "conflict";
+      return "neutral";
+    }
+
+    function statusLabel(s){
+      return ({
+        founding:"Founding nation",
+        member:"Member nation",
+        observer:"Observer state",
+        invite:"Open invite",
+        conflict:"Conflict",
+        neutral:"Neutral"
+      }[s] || "Neutral");
+    }
 
     function statusColor(s){
       const css = getComputedStyle(document.documentElement);
-      const blue2 = css.getPropertyValue("--blue2").trim();
-      const gold = css.getPropertyValue("--gold").trim();
-      const orange = css.getPropertyValue("--orange").trim();
-      const teal = css.getPropertyValue("--teal").trim();
-      const gray = css.getPropertyValue("--gray").trim();
       return ({
-        founding: gold,
-        member: blue2,
-        observer: orange,
-        special: teal,
-        neutral: gray
-      }[s] || gray);
+        member: css.getPropertyValue("--member").trim(),
+        founding: css.getPropertyValue("--founding").trim(),
+        observer: css.getPropertyValue("--observer").trim(),
+        invite: css.getPropertyValue("--invite").trim(),
+        conflict: css.getPropertyValue("--conflict").trim(),
+        neutral: css.getPropertyValue("--neutral").trim()
+      }[s] || css.getPropertyValue("--neutral").trim());
     }
 
     function badgeClass(s){
       return ({
-        founding: "founding",
-        member: "member",
-        observer: "observer",
-        special: "special",
-        neutral: "neutral"
+        member:"member",
+        founding:"founding",
+        observer:"observer",
+        invite:"invite",
+        conflict:"conflict",
+        neutral:"neutral"
       }[s] || "neutral");
     }
 
-    /**********************************************************************
-     * Map setup
-     **********************************************************************/
-    let map, tileLayer;
-    const markersById = new Map();
-    const layerGroup = L.layerGroup();
+    const el = (id) => document.getElementById(id);
+    const escapeHTML = (s) => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+    const normalize = (s) => (s||"").toLowerCase().replace(/\s+/g," ").trim();
 
-    // Member highlight behavior:
-    // ON: member+founding brighter, others subdued
-    // OFF: all equal
-    let memberHighlight = true;
+    let map, countriesLayer;
+    let selectedFeature = null;
+    let selectedName = null;
 
-    let selectedId = null;
-
-    function initMap(){
-      map = L.map("map", {
-        zoomControl: true,
-        worldCopyJump: true,
-        preferCanvas: true
-      }).setView([22, 0], 2);
-
-      tileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 6,
-        minZoom: 2,
-        attribution: "&copy; OpenStreetMap contributors"
-      }).addTo(map);
-
-      layerGroup.addTo(map);
-
-      // markers for all countries
-      for (const c of COUNTRIES){
-        const base = statusColor(c.status);
-        const marker = L.circleMarker([c.lat, c.lng], {
-          radius: (c.status === "founding" || c.status === "special") ? 9 : 8,
-          color: base,
-          fillColor: base,
-          weight: 2,
-          opacity: 0.9,
-          fillOpacity: 0.65
-        });
-
-        marker.on("click", () => selectCountry(c.id, { pan: false, openDrawer: true }));
-        marker.addTo(layerGroup);
-        markersById.set(c.id, marker);
-      }
-
-      // Optional subtle “core network” lines between founding+members (EU-ish, light)
-      const core = COUNTRIES.filter(c => c.status === "member" || c.status === "founding");
-      if (core.length >= 2){
-        const lines = [];
-        for (let i = 0; i < core.length; i++){
-          for (let j = i+1; j < core.length; j++){
-            if ((i + j) % 4 !== 0) continue; // sparse
-            lines.push([[core[i].lat, core[i].lng], [core[j].lat, core[j].lng]]);
-          }
-        }
-        if (lines.length){
-          L.polyline(lines, {
-            color: "rgba(27,63,191,.35)",
-            weight: 1.5,
-            opacity: 0.55,
-            dashArray: "6 10"
-          }).addTo(map);
-        }
-      }
-
-      applyMarkerStyles();
-      fitAll();
-    }
-
-    function applyMarkerStyles(){
-      for (const c of COUNTRIES){
-        const m = markersById.get(c.id);
-        if (!m) continue;
-
-        const base = statusColor(c.status);
-        const isCore = (c.status === "member" || c.status === "founding");
-        const isSelected = (selectedId === c.id);
-
-        const dim = memberHighlight ? (!isCore ? 0.30 : 0.72) : 0.70;
-        const fill = memberHighlight ? (!isCore ? 0.22 : 0.62) : 0.60;
-
-        // “special” should remain visible even when highlight is on
-        const isSpecial = (c.status === "special");
-        const finalOpacity = isSpecial ? Math.max(dim, 0.62) : dim;
-        const finalFill = isSpecial ? Math.max(fill, 0.55) : fill;
-
-        m.setStyle({
-          color: base,
-          fillColor: base,
-          opacity: finalOpacity,
-          fillOpacity: finalFill,
-          weight: isSelected ? 3 : 2,
-          radius: isSelected ? 10 : ((c.status === "founding" || c.status === "special") ? 9 : 8),
-        });
-      }
-    }
-
-    function fitAll(){
-      if (!map) return;
-      const latlngs = COUNTRIES.map(c => [c.lat, c.lng]);
-      map.fitBounds(L.latLngBounds(latlngs).pad(0.22));
-    }
-
-    function zoomToSelected(){
-      const c = getSelected();
-      if (!c || !map) return;
-      map.flyTo([c.lat, c.lng], Math.max(map.getZoom(), 4), { duration: 0.8 });
-    }
-
-    /**********************************************************************
-     * Drawer / selection
-     **********************************************************************/
+    const topbar = el("topbar");
+    const statusline = el("statusline");
     const drawer = el("drawer");
     const drawerBody = el("drawerBody");
 
-    const selName = el("selName");
-    const selStatus = el("selStatus");
-
-    function getSelected(){
-      return COUNTRIES.find(c => c.id === selectedId) || null;
-    }
-
-    function setStatusLine(country){
-      if (!country){
-        selName.textContent = "No selection";
-        selStatus.textContent = "—";
+    function setStatusLine(name){
+      if (!name){
+        el("selName").textContent = "No selection";
+        el("selStatus").textContent = "—";
         return;
       }
-      selName.textContent = country.name;
-      selStatus.textContent = statusLabel(country.status);
-    }
-
-    function setDrawer(country){
-      if (!country) return;
-
-      el("dFlag").textContent = country.flag || "🏳️";
-      el("dName").textContent = country.name;
-
-      const b = el("dBadge");
-      b.className = `badge ${badgeClass(country.status)}`;
-      b.textContent = statusLabel(country.status);
-
-      const mini = [];
-      if (country.capital) mini.push(`Capital: ${country.capital}`);
-      if (country.region) mini.push(country.region);
-      el("dMini").textContent = mini.join(" • ") || "—";
-
-      // Body: richer info (edit in COUNTRIES)
-      const blocks = [];
-
-      blocks.push(`
-        <div class="card">
-          <h3>Overview</h3>
-          <p class="note" style="margin:0;">${escapeHTML(country.short || "—")}</p>
-        </div>
-      `);
-
-      blocks.push(`
-        <div class="card">
-          <h3>Key Facts</h3>
-          <div class="grid2">
-            <div class="kv"><div class="k">Status</div><div class="v">${escapeHTML(statusLabel(country.status))}</div></div>
-            <div class="kv"><div class="k">OFN Role</div><div class="v">${escapeHTML(country.ofnRole || "—")}</div></div>
-            <div class="kv"><div class="k">Alignment</div><div class="v">${escapeHTML(country.alignment || "—")}</div></div>
-            <div class="kv"><div class="k">Coordinates</div><div class="v">${country.lat.toFixed(4)}, ${country.lng.toFixed(4)}</div></div>
-          </div>
-        </div>
-      `);
-
-      const detailRows = Array.isArray(country.details) ? country.details : [];
-      if (detailRows.length){
-        blocks.push(`
-          <div class="card">
-            <h3>Briefing Notes</h3>
-            <div style="display:flex;flex-direction:column;gap:10px;">
-              ${detailRows.map(r => `
-                <div class="kv">
-                  <div class="k">${escapeHTML(r.k || "—")}</div>
-                  <div class="v">${escapeHTML(r.v || "—")}</div>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-        `);
-      }
-
-      blocks.push(`
-        <div class="card">
-          <h3>Editing tip</h3>
-          <p class="note" style="margin:0;">
-            Update this nation’s fields inside <code>COUNTRIES</code> in the HTML and push to GitHub —
-            Netlify will auto-redeploy.
-          </p>
-        </div>
-      `);
-
-      drawerBody.innerHTML = blocks.join("");
+      const s = statusOf(name);
+      el("selName").textContent = name;
+      el("selStatus").textContent = statusLabel(s);
     }
 
     function openDrawer(){ drawer.classList.add("open"); }
     function closeDrawer(){ drawer.classList.remove("open"); }
 
-    function selectCountry(id, opts = { pan:false, openDrawer:true }){
-      const c = COUNTRIES.find(x => x.id === id);
-      if (!c) return;
+    function setDrawerHeader(name){
+      const s = statusOf(name);
+      el("dName").textContent = name;
+      el("dMini").textContent = (name === OFN.hq) ? "Headquarters" : "—";
+      el("dFlag").textContent = "🌍";
 
-      selectedId = id;
-      setStatusLine(c);
-      applyMarkerStyles();
-
-      const m = markersById.get(id);
-      if (m){
-        m.bindPopup(`<b>${escapeHTML(c.flag || "🏳️")} ${escapeHTML(c.name)}</b><br>${escapeHTML(statusLabel(c.status))}`).openPopup();
-      }
-
-      setDrawer(c);
-      if (opts.openDrawer) openDrawer();
-      if (opts.pan) zoomToSelected();
+      const b = el("dBadge");
+      b.className = `badge ${badgeClass(s)}`;
+      b.textContent = statusLabel(s);
     }
 
-    /**********************************************************************
-     * Filtering (search/filter affects which markers are “prominent”)
-     * - You wanted: scroll/zoom out shows specials in different color (done)
-     * - and: can click any nation (done)
-     * - filtering will hide/dim non-matching markers (still clickable if not fully hidden)
-     **********************************************************************/
-    const searchEl = el("search");
-    const filterEl = el("filter");
+    async function fetchWikiSummary(title){
+      const t = encodeURIComponent(title.replace(/\s+/g, "_"));
+      const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${t}`;
+      const res = await fetch(url, { headers: { "accept":"application/json" } });
+      if (!res.ok) throw new Error("wiki");
+      return await res.json();
+    }
 
-    function applyFilter(){
-      const q = (searchEl.value || "").trim().toLowerCase();
-      const f = filterEl.value;
+    async function fillDrawerFromInternet(name){
+      setDrawerHeader(name);
 
-      for (const c of COUNTRIES){
-        const m = markersById.get(c.id);
-        if (!m) continue;
+      const s = statusOf(name);
+      const cards = [];
 
-        const matchFilter = (f === "all") ? true : c.status === f;
-        const hay = `${c.name} ${c.capital || ""} ${c.region || ""} ${c.status}`.toLowerCase();
-        const matchQuery = !q ? true : hay.includes(q);
-        const match = matchFilter && matchQuery;
+      cards.push(`
+        <div class="card">
+          <h3>Status</h3>
+          <div class="grid2">
+            <div class="kv"><div class="k">OFN</div><div class="v">${escapeHTML(statusLabel(s))}</div></div>
+            <div class="kv"><div class="k">Designation</div><div class="v">${escapeHTML((name===OFN.hq) ? "Headquarters" : "—")}</div></div>
+          </div>
+        </div>
+      `);
 
-        // “Hidden” markers still exist but are highly transparent; still clickable if you find them.
-        // If you want true hiding: set radius 0 + opacity 0 and disable pointer events (harder in Leaflet).
-        m.setStyle({
-          opacity: match ? undefined : 0.15,
-          fillOpacity: match ? undefined : 0.08,
-          radius: match ? undefined : 6
+      let wiki = null;
+      let wikiTitle = name;
+
+      try{
+        wiki = await fetchWikiSummary(wikiTitle);
+      }catch(e){
+        if (name === "Falkland Islands"){
+          try{ wiki = await fetchWikiSummary("Falkland Islands"); }catch(_){}
+        }
+        if (!wiki && name === "United States of America"){
+          try{ wiki = await fetchWikiSummary("United States"); wikiTitle = "United States"; }catch(_){}
+        }
+        if (!wiki && name === "Philippines"){
+          try{ wiki = await fetchWikiSummary("Philippines"); }catch(_){}
+        }
+      }
+
+      if (wiki && (wiki.extract || wiki.description)){
+        const extract = wiki.extract ? escapeHTML(wiki.extract) : "";
+        const desc = wiki.description ? escapeHTML(wiki.description) : "";
+        const page = wiki.content_urls && wiki.content_urls.desktop && wiki.content_urls.desktop.page ? wiki.content_urls.desktop.page : null;
+
+        cards.push(`
+          <div class="card">
+            <h3>Overview</h3>
+            <p class="note" style="margin:0 0 10px 0;">${desc || ""}</p>
+            <p class="note" style="margin:0;">${extract || "—"}</p>
+            ${page ? `<p style="margin:10px 0 0 0;"><a class="link" href="${page}" target="_blank" rel="noopener noreferrer">Open source</a></p>` : ""}
+          </div>
+        `);
+
+        const fields = [];
+        if (wiki.titles && wiki.titles.display) fields.push(["Article", wiki.titles.display]);
+        if (wiki.lang) fields.push(["Language", wiki.lang]);
+        if (wiki.type) fields.push(["Type", wiki.type]);
+
+        if (fields.length){
+          cards.push(`
+            <div class="card">
+              <h3>Source metadata</h3>
+              <div class="grid2">
+                ${fields.map(([k,v]) => `<div class="kv"><div class="k">${escapeHTML(k)}</div><div class="v">${escapeHTML(v)}</div></div>`).join("")}
+              </div>
+            </div>
+          `);
+        }
+      } else {
+        cards.push(`
+          <div class="card">
+            <h3>Overview</h3>
+            <p class="note" style="margin:0;">Could not load external summary for this country right now.</p>
+          </div>
+        `);
+      }
+
+      drawerBody.innerHTML = cards.join("");
+    }
+
+    function styleFeature(feature){
+      const name = canonicalName(feature.properties?.name || "");
+      const s = statusOf(name);
+      const color = statusColor(s);
+
+      const base = {
+        color: "rgba(15,27,58,.18)",
+        weight: 1,
+        fillColor: color,
+        fillOpacity: 0.40
+      };
+
+      if (s === "member" || s === "founding") base.fillOpacity = 0.55;
+      if (s === "observer") base.fillOpacity = 0.45;
+      if (s === "invite") base.fillOpacity = 0.45;
+      if (s === "conflict") base.fillOpacity = 0.50;
+
+      const currentFilter = el("filter").value;
+      const matches = (currentFilter === "all") ? true : (s === currentFilter);
+
+      if (!matches){
+        base.fillOpacity = Math.min(base.fillOpacity, 0.12);
+        base.opacity = 0.15;
+      } else {
+        base.opacity = 0.6;
+      }
+
+      return base;
+    }
+
+    function setFeatureHover(layer, on){
+      const name = canonicalName(layer.feature.properties?.name || "");
+      const s = statusOf(name);
+      const color = statusColor(s);
+
+      if (on){
+        layer.setStyle({
+          weight: 2,
+          color: "rgba(27,63,191,.35)",
+          fillOpacity: Math.min(0.72, (s === "member" || s === "founding") ? 0.68 : 0.58)
+        });
+      } else {
+        layer.setStyle(styleFeature(layer.feature));
+      }
+    }
+
+    function selectLayer(layer){
+      if (selectedFeature && selectedFeature !== layer){
+        selectedFeature.setStyle(styleFeature(selectedFeature.feature));
+      }
+      selectedFeature = layer;
+
+      const name = canonicalName(layer.feature.properties?.name || "");
+      selectedName = name;
+
+      layer.setStyle({
+        weight: 2.5,
+        color: "rgba(27,63,191,.55)",
+        fillOpacity: 0.78
+      });
+
+      setStatusLine(name);
+      openDrawer();
+      fillDrawerFromInternet(name).catch(() => {
+        setDrawerHeader(name);
+        drawerBody.innerHTML = `<div class="card"><h3>Overview</h3><p class="note" style="margin:0;">Could not load external summary right now.</p></div>`;
+      });
+    }
+
+    function zoomToSelected(){
+      if (!selectedFeature) return;
+      try{
+        map.fitBounds(selectedFeature.getBounds().pad(0.25));
+      }catch(_){}
+    }
+
+    function refilter(){
+      if (!countriesLayer) return;
+      countriesLayer.eachLayer((layer) => {
+        layer.setStyle(styleFeature(layer.feature));
+      });
+      if (selectedFeature){
+        selectedFeature.setStyle({
+          weight: 2.5,
+          color: "rgba(27,63,191,.55)",
+          fillOpacity: 0.78
         });
       }
-
-      // then re-apply member highlight & selected emphasis on top
-      applyMarkerStyles();
     }
 
-    /**********************************************************************
-     * Intro animation: ring of member flags as “stars”, then fly away
-     **********************************************************************/
-    const intro = el("intro");
-    const introCanvas = el("introCanvas");
-    const introCount = el("introCount");
-    const introLine = el("introLine");
-    const skipIntro = el("skipIntro");
+    function findCountryLayerByName(query){
+      const q = normalize(canonicalName(query));
+      if (!q || !countriesLayer) return null;
 
-    function runIntro(){
-      const ctx = introCanvas.getContext("2d", { alpha: true });
-      if (!ctx){
-        finishIntro();
-        return;
-      }
+      let best = null;
+      countriesLayer.eachLayer((layer) => {
+        const name = normalize(canonicalName(layer.feature.properties?.name || ""));
+        if (name === q) best = layer;
+      });
+      if (best) return best;
 
-      const members = COUNTRIES.filter(c => c.status === "member" || c.status === "founding");
-      introCount.textContent = String(members.length);
-
-      // canvas sizing
-      function resize(){
-        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-        introCanvas.width = Math.floor(introCanvas.clientWidth * dpr);
-        introCanvas.height = Math.floor(introCanvas.clientHeight * dpr);
-        ctx.setTransform(dpr,0,0,dpr,0,0);
-      }
-      resize();
-      window.addEventListener("resize", resize, { passive:true });
-
-      // Pre-render “flag star” sprites (emoji flags)
-      const sprites = members.map(m => ({
-        c: m,
-        phase: Math.random()*Math.PI*2,
-        jitter: 0.8 + Math.random()*0.6,
-      }));
-
-      let start = performance.now();
-      let stage = "orbit"; // orbit -> fly -> done
-      const orbitDuration = 2.6;   // seconds
-      const flyDuration = 0.9;     // seconds
-      const total = orbitDuration + flyDuration;
-
-      introLine.textContent = "Aligning constellations…";
-
-      function draw(now){
-        const t = (now - start) / 1000;
-        const w = introCanvas.clientWidth;
-        const h = introCanvas.clientHeight;
-
-        ctx.clearRect(0,0,w,h);
-
-        const cx = w*0.5, cy = h*0.52;
-        const R = Math.min(w,h)*0.28;
-
-        // soft EU-blue glow
-        const glow = ctx.createRadialGradient(cx, cy, 10, cx, cy, R*2.2);
-        glow.addColorStop(0, "rgba(43,109,255,.16)");
-        glow.addColorStop(0.5, "rgba(43,109,255,.06)");
-        glow.addColorStop(1, "rgba(255,255,255,0)");
-        ctx.fillStyle = glow;
-        ctx.fillRect(0,0,w,h);
-
-        // ring
-        ctx.strokeStyle = "rgba(27,63,191,.22)";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(cx, cy, R, 0, Math.PI*2);
-        ctx.stroke();
-
-        // center star (gold)
-        const pulse = 0.5 + 0.5*Math.sin(t*2.0);
-        ctx.fillStyle = `rgba(255,204,51,${0.22 + 0.12*pulse})`;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 4 + 2*pulse, 0, Math.PI*2);
-        ctx.fill();
-
-        // stage calculation
-        let orbitT = Math.min(t / orbitDuration, 1);
-        let flyT = Math.max(0, (t - orbitDuration) / flyDuration);
-        flyT = Math.min(flyT, 1);
-
-        if (t > orbitDuration && stage === "orbit"){
-          stage = "fly";
-          introLine.textContent = "Unifying — welcome.";
-        }
-        if (t > total){
-          finishIntro();
-          return;
-        }
-
-        // nodes
-        const n = sprites.length || 1;
-        const spin = t * 0.65;
-
-        for (let i=0;i<sprites.length;i++){
-          const s = sprites[i];
-          const a0 = (i/n)*Math.PI*2 + spin;
-          const wob = 1 + 0.02*Math.sin(t*3.0 + s.phase);
-          let rr = R*wob;
-
-          // Fly-away behavior: push outward + fade
-          const flyOut = (stage === "fly") ? (1 + flyT*1.2) : 1;
-          rr *= flyOut;
-
-          const x = cx + Math.cos(a0)*rr;
-          const y = cy + Math.sin(a0)*rr;
-
-          const alpha = (stage === "fly") ? (1 - flyT) : 1;
-
-          // gold “star” glow behind flag
-          ctx.globalAlpha = 0.75 * alpha;
-          ctx.fillStyle = "rgba(255,204,51,.22)";
-          ctx.beginPath();
-          ctx.arc(x, y, 16, 0, Math.PI*2);
-          ctx.fill();
-
-          // draw flag “texture”
-          ctx.globalAlpha = 1 * alpha;
-          ctx.font = "22px system-ui, Apple Color Emoji, Segoe UI Emoji";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(s.c.flag || "★", x, y);
-
-          // tiny orbit line shimmer
-          if (stage === "orbit" && (i % 3 === 0)){
-            ctx.globalAlpha = 0.25;
-            ctx.strokeStyle = "rgba(27,63,191,.18)";
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(cx, cy);
-            ctx.stroke();
-          }
-
-          ctx.globalAlpha = 1;
-        }
-
-        requestAnimationFrame(draw);
-      }
-
-      requestAnimationFrame(draw);
+      let partial = null;
+      countriesLayer.eachLayer((layer) => {
+        const name = normalize(canonicalName(layer.feature.properties?.name || ""));
+        if (!partial && name.includes(q)) partial = layer;
+      });
+      return partial;
     }
 
-    function finishIntro(){
-      intro.classList.add("hidden");
-      setTimeout(() => intro.remove(), 700);
+    function initMap(){
+      map = L.map("map", {
+        zoomControl: false,
+        worldCopyJump: true,
+        preferCanvas: true
+      }).setView([22, 0], 2);
+
+      L.control.zoom({ position: "bottomright" }).addTo(map);
+
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        subdomains: "abcd",
+        maxZoom: 7,
+        minZoom: 2,
+        attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
+      }).addTo(map);
+
+      const geoUrl = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
+
+      fetch(geoUrl)
+        .then(r => r.json())
+        .then(geo => {
+          countriesLayer = L.geoJSON(geo, {
+            style: styleFeature,
+            onEachFeature: (feature, layer) => {
+              layer.on("mouseover", () => setFeatureHover(layer, true));
+              layer.on("mouseout", () => setFeatureHover(layer, false));
+              layer.on("click", () => selectLayer(layer));
+            }
+          }).addTo(map);
+
+          const bounds = countriesLayer.getBounds();
+          if (bounds && bounds.isValid()) map.fitBounds(bounds.pad(0.02));
+
+          wireUI();
+          runIntroAnimation();
+        })
+        .catch(() => {
+          wireUI();
+          runIntroAnimation();
+        });
     }
 
-    /**********************************************************************
-     * Wire up UI
-     **********************************************************************/
     function wireUI(){
       el("closeBtn").addEventListener("click", closeDrawer);
       el("zoomBtn").addEventListener("click", zoomToSelected);
 
-      el("fitBtn").addEventListener("click", fitAll);
-
-      el("modeBtn").addEventListener("click", () => {
-        memberHighlight = !memberHighlight;
-        el("modeBtn").textContent = `Member Highlight: ${memberHighlight ? "ON" : "OFF"}`;
-        applyMarkerStyles();
-        applyFilter(); // keep filter result consistent
+      el("fitBtn").addEventListener("click", () => {
+        if (countriesLayer){
+          const b = countriesLayer.getBounds();
+          if (b && b.isValid()) map.fitBounds(b.pad(0.02));
+        }
       });
 
-      searchEl.addEventListener("input", applyFilter);
-      filterEl.addEventListener("change", applyFilter);
+      el("resetBtn").addEventListener("click", () => {
+        el("search").value = "";
+        el("filter").value = "all";
+        refilter();
+        closeDrawer();
+        selectedName = null;
+        selectedFeature = null;
+        setStatusLine(null);
+      });
 
-      skipIntro.addEventListener("click", finishIntro);
+      el("filter").addEventListener("change", refilter);
 
-      // Close drawer when clicking outside (on map) if open and no popup clicked
-      document.addEventListener("click", (e) => {
-        if (!drawer.classList.contains("open")) return;
-        const withinDrawer = drawer.contains(e.target);
-        const withinTopbar = el("topbar").contains(e.target);
-        const isLeafletPopup = String(e.target.className || "").includes("leaflet");
-        if (!withinDrawer && !withinTopbar && !isLeafletPopup){
-          // don't close if user clicked a marker (Leaflet handles it)
-          // small delay to allow marker selection to open drawer
-          setTimeout(() => {
-            const c = getSelected();
-            // keep open if a selection exists (you can comment this if you want click-outside to always close)
-            if (!c) closeDrawer();
-          }, 0);
+      const searchEl = el("search");
+      const doSearch = () => {
+        const q = searchEl.value.trim();
+        if (!q) return;
+        const layer = findCountryLayerByName(q);
+        if (layer){
+          selectLayer(layer);
+          try{ map.fitBounds(layer.getBounds().pad(0.25)); }catch(_){}
         }
-      }, { capture:true });
+      };
+      searchEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") doSearch();
+      });
+      searchEl.addEventListener("input", () => {
+        // no restriction: search is for any nation
+      });
 
-      // ESC closes drawer
       window.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeDrawer();
       });
     }
 
-    /**********************************************************************
-     * Boot
-     **********************************************************************/
-    (function boot(){
-      wireUI();
-      initMap();
+    function emojiFlagForCountry(name){
+      const n = canonicalName(name);
+      const mapEmoji = new Map([
+        ["Luxembourg","🇱🇺"],
+        ["Falkland Islands","🇫🇰"],
+        ["Israel","🇮🇱"],
+        ["United States of America","🇺🇸"],
+        ["Philippines","🇵🇭"],
+        ["Brazil","🇧🇷"]
+      ]);
+      return mapEmoji.get(n) || "★";
+    }
 
-      // Pick a friendly default selection? You said drawer should only show on click,
-      // so we do NOT auto-open. Statusline stays “No selection”.
-      setStatusLine(null);
+    function runIntroAnimation(){
+      const intro = el("intro");
+      const canvas = el("introCanvas");
+      const ctx = canvas.getContext("2d", { alpha: true });
+      if (!ctx){
+        finishIntro();
+        return;
+      }
 
-      // Intro ring
-      runIntro();
+      function resize(){
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        canvas.width = Math.floor(canvas.clientWidth * dpr);
+        canvas.height = Math.floor(canvas.clientHeight * dpr);
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+      }
+      resize();
+      window.addEventListener("resize", resize, { passive:true });
 
-      // If user is offline, OSM tiles may not load; but everything else still works.
-      // (No debug panels—just quiet behavior.)
-    })();
+      const members = Array.from(OFN.members);
+      const nodes = members.map((name, i) => ({
+        name,
+        flag: emojiFlagForCountry(name),
+        phase: Math.random()*Math.PI*2
+      }));
+
+      const orbitSeconds = 2.0;
+      const flySeconds = 0.7;
+      const fadeInSeconds = 0.5;
+      const total = orbitSeconds + flySeconds + fadeInSeconds;
+
+      let t0 = performance.now();
+      function tick(now){
+        const t = (now - t0)/1000;
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+
+        ctx.clearRect(0,0,w,h);
+
+        const cx = w*0.5, cy = h*0.5;
+        const R = Math.min(w,h)*0.26;
+
+        const orbitT = Math.min(1, t / orbitSeconds);
+        const flyT = Math.max(0, Math.min(1, (t - orbitSeconds)/flySeconds));
+        const fadeT = Math.max(0, Math.min(1, (t - orbitSeconds - flySeconds)/fadeInSeconds));
+
+        const spin = t * 0.9;
+
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0,0,w,h);
+
+        ctx.strokeStyle = "rgba(27,63,191,.16)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, R, 0, Math.PI*2);
+        ctx.stroke();
+
+        const pulse = 0.5 + 0.5*Math.sin(t*2.2);
+        ctx.fillStyle = `rgba(255,204,51,${0.18 + 0.10*pulse})`;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4 + 2*pulse, 0, Math.PI*2);
+        ctx.fill();
+
+        const n = Math.max(1, nodes.length);
+        for (let i=0;i<nodes.length;i++){
+          const node = nodes[i];
+          const a = (i/n)*Math.PI*2 + spin;
+          let rr = R * (1 + 0.02*Math.sin(t*2.8 + node.phase));
+
+          let x = cx + Math.cos(a)*rr;
+          let y = cy + Math.sin(a)*rr;
+
+          let alpha = Math.min(1, 0.15 + orbitT*0.85);
+
+          if (flyT > 0){
+            const dir = (i % 2 === 0) ? 1 : -1;
+            x += dir * flyT * (w*0.55);
+            y += (Math.sin(a)*flyT) * (h*0.12);
+            alpha *= (1 - flyT);
+          }
+
+          ctx.globalAlpha = 0.55 * alpha;
+          ctx.fillStyle = "rgba(255,204,51,.22)";
+          ctx.beginPath();
+          ctx.arc(x, y, 16, 0, Math.PI*2);
+          ctx.fill();
+
+          ctx.globalAlpha = 1 * alpha;
+          ctx.font = "22px system-ui, Apple Color Emoji, Segoe UI Emoji";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = "rgba(15,27,58,.95)";
+          ctx.fillText(node.flag, x, y);
+
+          ctx.globalAlpha = 1;
+        }
+
+        if (t < total){
+          requestAnimationFrame(tick);
+        } else {
+          finishIntro();
+        }
+
+        topbar.classList.toggle("ready", fadeT > 0.05);
+        statusline.classList.toggle("ready", fadeT > 0.20);
+      }
+
+      requestAnimationFrame(tick);
+
+      function finishIntro(){
+        intro.classList.add("hidden");
+        setTimeout(() => intro.remove(), 600);
+        topbar.classList.add("ready");
+        statusline.classList.add("ready");
+      }
+    }
+
+    initMap();
   </script>
 </body>
 </html>
