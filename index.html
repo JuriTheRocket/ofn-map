@@ -1253,16 +1253,58 @@
       resize();
       window.addEventListener("resize", resize, { passive:true });
 
-      const members = Array.from(OFN.members);
-      const nodes = [];
-      for (const name of members){
-        const iso2 = iso2FromName(name);
-        let img = null;
-        if (iso2){
-          try{ img = await loadImage(twemojiFlagUrlFromISO2(iso2)); } catch(_){ img = null; }
-        }
-        nodes.push({ name, iso2, img, phase: Math.random()*Math.PI*2 });
-      }
+     // Collect real members
+const realMembers = Array.from(OFN.members);
+
+// Collect fictional member states
+const fictionalMembers = Array.from(FICTIONAL.entries())
+  .filter(([_, data]) => data.status === "member")
+  .map(([name]) => name);
+
+// Merge both
+const members = [...realMembers, ...fictionalMembers];
+
+const nodes = [];
+
+for (const name of members){
+
+  const iso2 = iso2FromName(name);
+  let img = null;
+
+  // Real countries use flag emoji images
+  if (iso2){
+    try{
+      img = await loadImage(twemojiFlagUrlFromISO2(iso2));
+    } catch(_){
+      img = null;
+    }
+  }
+
+  // Fictional countries use their custom icon
+  if (!img && FICTIONAL.has(name)){
+    const icon = FICTIONAL.get(name).flag || "🗺️";
+
+    // Render emoji into temporary canvas for clean scaling
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = 64;
+    tempCanvas.height = 64;
+    const tctx = tempCanvas.getContext("2d");
+
+    tctx.font = "48px system-ui";
+    tctx.textAlign = "center";
+    tctx.textBaseline = "middle";
+    tctx.fillText(icon, 32, 36);
+
+    img = tempCanvas;
+  }
+
+  nodes.push({
+    name,
+    iso2,
+    img,
+    phase: Math.random() * Math.PI * 2
+  });
+}
 
       const orbitSeconds = 2.0;
       const flySeconds = 0.7;
@@ -1592,4 +1634,5 @@
   </script>
 </body>
 </html>
+
 
