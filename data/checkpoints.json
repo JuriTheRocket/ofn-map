@@ -1,0 +1,193 @@
+[
+  {
+    "id": "OFN-HQ-LUX",
+    "name": "OFN Headquarters Complex",
+    "type": "HQ",
+    "region": "Luxembourg",
+    "role": "Strategic coordination & charter administration",
+    "access": "Restricted",
+    "shape": "square",
+    "lat": 49.6117,
+    "lng": 6.1319,
+    "size_km": 10,
+    "severity": "Low",
+    "priority": 9,
+    "active_from": 2016,
+    "active_to": 2030,
+    "meta": {
+      "Directorate": "Secretariat-General",
+      "Facility": "Briefing wing • archive vaults • comms suite",
+      "Security": "Tier IV perimeter"
+    },
+    "overview": "Administrative heart of the Organisation. Hosts the Secretariat-General, charter registry, and interagency operations rooms."
+  },
+  {
+    "id": "OFN-RELAY-ATL",
+    "name": "Relay Node ATLANTIC-7",
+    "type": "Relay",
+    "region": "North Atlantic",
+    "role": "Long-range comms relay & routing",
+    "access": "Controlled",
+    "shape": "circle",
+    "lat": 38.4,
+    "lng": -28.2,
+    "radius_km": 22,
+    "severity": "Low",
+    "priority": 6,
+    "active_from": 2018,
+    "active_to": 2030,
+    "meta": {
+      "Primary function": "HF/VHF routing • emergency broadcast",
+      "Redundancy": "Dual uplink"
+    },
+    "overview": "A maritime-adjacent relay node providing resilient communications routing for OFN field assets and scheduled exercises."
+  },
+  {
+    "id": "OFN-LOG-IBERIA",
+    "name": "Logistics Yard IBERIA",
+    "type": "Logistics",
+    "region": "Western Europe",
+    "role": "Storage, dispatch, and convoy staging",
+    "access": "Controlled",
+    "shape": "square",
+    "lat": 40.15,
+    "lng": -3.7,
+    "size_km": 14,
+    "severity": "Medium",
+    "priority": 7,
+    "active_from": 2020,
+    "active_to": 2030,
+    "meta": {
+      "Capacity": "Medium",
+      "Notes": "Rotational customs liaison"
+    },
+    "overview": "Regional logistics site supporting scheduled shipments, rotations, and coordination with partner services."
+  },
+  {
+    "id": "OFN-LIAISON-AEGEAN",
+    "name": "Liaison Mission AEGEAN",
+    "type": "Liaison",
+    "region": "Aegean",
+    "role": "Diplomatic-military liaison and maritime coordination",
+    "access": "Controlled",
+    "shape": "circle",
+    "lat": 37.98,
+    "lng": 23.73,
+    "radius_km": 16,
+    "severity": "Low",
+    "priority": 5,
+    "active_from": 2017,
+    "active_to": 2030,
+    "meta": {
+      "Mandate": "Coordination • deconfliction",
+      "Footprint": "Small"
+    },
+    "overview": "A standing liaison presence facilitating coordination, notifications, and training exchanges."
+  },
+  {
+    "id": "OFN-SEC-CORRIDOR",
+    "name": "Security Corridor ALPHA",
+    "type": "Security",
+    "region": "Central Europe",
+    "role": "Transit security & protective escort coordination",
+    "access": "Controlled",
+    "shape": "circle",
+    "lat": 50.0,
+    "lng": 8.25,
+    "radius_km": 26,
+    "severity": "Medium",
+    "priority": 8,
+    "active_from": 2022,
+    "active_to": 2030,
+    "meta": {
+      "Function": "Transit oversight",
+      "Notes": "Escorts are rotational"
+    },
+    "overview": "A transit oversight area used during scheduled movements and high-visibility convoys."
+  },
+  {
+    "id": "OFN-TRN-PAC",
+    "name": "Training Detachment PACIFIC",
+    "type": "Training",
+    "region": "Western Pacific",
+    "role": "Joint training and standardization",
+    "access": "Controlled",
+    "shape": "circle",
+    "lat": 14.6,
+    "lng": 120.98,
+    "radius_km": 24,
+    "severity": "Low",
+    "priority": 4,
+    "active_from": 2019,
+    "active_to": 2030,
+    "meta": {
+      "Cadence": "Quarterly exercises",
+      "Focus": "Interoperability"
+    },
+    "overview": "A rotating training detachment supporting joint exercises, interoperability reviews, and doctrine testing."
+  },
+  {
+    "id": "OFN-RES-ORION",
+    "name": "Outpost ORION (Polar Research)",
+    "type": "Research",
+    "region": "Antarctic Region",
+    "role": "Cold-weather research & survival systems testing",
+    "access": "Restricted",
+    "shape": "square",
+    "lat": -71.02,
+    "lng": 30.05,
+    "size_km": 12,
+    "severity": "Low",
+    "priority": 7,
+    "active_from": 2021,
+    "active_to": 2030,
+    "meta": {
+      "Focus": "Extreme environment testing",
+      "Note": "Remote resupply window"
+    },
+    "overview": "Remote research station supporting cold-weather systems testing and extreme climate studies.",
+    "image": "assets/antarc.png"
+  },
+  {
+    "id": "OFN-HUM-DELTA",
+    "name": "Humanitarian Coordination DELTA",
+    "type": "Humanitarian",
+    "region": "Eastern Mediterranean",
+    "role": "Aid staging & distribution liaison",
+    "access": "Open (supervised)",
+    "shape": "circle",
+    "lat": 31.78,
+    "lng": 35.22,
+    "radius_km": 18,
+    "severity": "Medium",
+    "priority": 6,
+    "active_from": 2023,
+    "active_to": 2030,
+    "meta": {
+      "Mandate": "Civil support",
+      "Emphasis": "De-escalation"
+    },
+    "overview": "A coordination site used for supervised staging and liaison during humanitarian operations."
+  },
+  {
+    "id": "OFN-RELAY-CARIB",
+    "name": "Relay Node CARIB-2",
+    "type": "Relay",
+    "region": "Caribbean",
+    "role": "Regional routing and emergency broadcast support",
+    "access": "Controlled",
+    "shape": "circle",
+    "lat": 18.47,
+    "lng": -66.11,
+    "radius_km": 20,
+    "severity": "Low",
+    "priority": 5,
+    "active_from": 2016,
+    "active_to": 2030,
+    "meta": {
+      "Coverage": "Regional",
+      "Notes": "Hurricane contingency routing"
+    },
+    "overview": "A resilient relay node designed to maintain routing continuity during severe weather disruptions."
+  }
+]
