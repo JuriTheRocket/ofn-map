@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Organisation of Free Nations — Briefing Board</title>
+  <title>Organisation of Free Nations — Global Atlas</title>
 
   <link
     rel="stylesheet"
@@ -18,31 +18,45 @@
 <body>
   <div id="map"></div>
 
-  <!-- Top strip -->
-  <header id="top">
+  <!-- LIVE overlays (canvas) -->
+  <canvas id="liveCanvas" aria-hidden="true"></canvas>
+
+  <!-- Top bar (compact, no clutter) -->
+  <header id="topbar" role="banner">
     <div class="brand">
       <div class="sigil" aria-hidden="true"></div>
       <div class="brandText">
-        <div class="kicker">OFN / BRIEFING BOARD</div>
-        <div class="title">Organisation of Free Nations</div>
-        <div class="sub">Roster • Checkpoints • Dossiers</div>
+        <div class="title">ORGANISATION OF FREE NATIONS</div>
+        <div class="sub">GLOBAL ATLAS • MEMBER STATES • FIELD SITES</div>
       </div>
     </div>
 
-    <div class="topTools">
-      <div class="pill">
-        <span class="dot" id="netDot"></span>
-        <span id="netText">BOOT</span>
-      </div>
+    <div class="tools" role="toolbar" aria-label="Controls">
+      <input id="search" type="text" placeholder="Search country / fictional / site…" spellcheck="false" />
+      <select id="filter">
+        <option value="all">All statuses</option>
+        <option value="founding">Founding</option>
+        <option value="hq">Headquarters</option>
+        <option value="member">Member</option>
+        <option value="invite">Open invite</option>
+        <option value="observer">Observer</option>
+        <option value="neutral">Neutral</option>
+        <option value="fiction">Fictional</option>
+        <option value="site">Sites</option>
+      </select>
 
-      <div class="seg" role="group" aria-label="Map mode">
-        <button class="segBtn on" id="modeBorders" type="button">Borders</button>
-        <button class="segBtn" id="modeSignals" type="button">Signals</button>
-      </div>
+      <button class="btn" id="aboutBtn" type="button">About the OFN</button>
 
       <div class="seg" role="group" aria-label="Theme">
-        <button class="segBtn on" id="themeArchive" type="button">Archive</button>
-        <button class="segBtn" id="themeOps" type="button">Ops Night</button>
+        <button class="segBtn on" id="themeAuto" type="button" title="Theme follows time">Auto</button>
+        <button class="segBtn" id="themeDay" type="button">Day</button>
+        <button class="segBtn" id="themeNight" type="button">Night</button>
+      </div>
+
+      <div class="seg" role="group" aria-label="Live overlays">
+        <button class="segBtn on" id="liveDayNight" type="button" title="Show day/night shading">Day/Night</button>
+        <button class="segBtn on" id="liveTraffic" type="button" title="Show moving traffic">Traffic</button>
+        <button class="segBtn on" id="livePings" type="button" title="Animate pings">Radiance</button>
       </div>
 
       <button class="btn" id="fitBtn" type="button">Fit</button>
@@ -50,104 +64,74 @@
     </div>
   </header>
 
-  <!-- Left panel -->
-  <aside id="left">
-    <div class="leftHead">
-      <input id="search" type="text" placeholder="Search nations / checkpoints…" spellcheck="false" />
-      <button class="btn small" id="clearPinsBtn" type="button" title="Clear pinned items">Clear Pins</button>
-    </div>
+  <!-- Minimal status strip -->
+  <div id="statusline" aria-live="polite">
+    <span class="chip" id="hoverName">Hover: —</span>
+    <span class="chip" id="coordInfo">Lat —, Lng —</span>
+    <span class="chip" id="hint">Click = dossier • Alt+Click = pin</span>
+  </div>
 
-    <div class="tabs" role="tablist" aria-label="Roster tabs">
-      <button class="tab on" id="tabNations" type="button" role="tab" aria-selected="true">Nations</button>
-      <button class="tab" id="tabCheckpoints" type="button" role="tab" aria-selected="false">Checkpoints</button>
-      <button class="tab" id="tabFiction" type="button" role="tab" aria-selected="false">Fiction</button>
-    </div>
-
-    <div class="filters">
-      <div class="row">
-        <label class="lab" for="statusFilter">Status</label>
-        <select id="statusFilter">
-          <option value="all">All</option>
-          <option value="founding">Founding</option>
-          <option value="member">Member</option>
-          <option value="observer">Observer</option>
-          <option value="partner">Partner</option>
-          <option value="invite">Invite</option>
-          <option value="sanctioned">Sanctioned</option>
-          <option value="neutral">Neutral</option>
-        </select>
-      </div>
-
-      <div class="row">
-        <label class="lab" for="yearFilter">Year</label>
-        <input id="yearFilter" type="range" min="2000" max="2030" value="2026" />
-        <div class="miniRow">
-          <span class="hint">show items active in</span>
-          <b id="yearLabel">2026</b>
-        </div>
-      </div>
-
-      <div class="row">
-        <label class="lab" for="cpTypeFilter">Checkpoint</label>
-        <select id="cpTypeFilter">
-          <option value="all">All types</option>
-          <option value="HQ">HQ / Admin</option>
-          <option value="Liaison">Liaison</option>
-          <option value="Logistics">Logistics</option>
-          <option value="Security">Security</option>
-          <option value="Research">Research</option>
-          <option value="Relay">Comms / Relay</option>
-          <option value="Training">Training</option>
-          <option value="Humanitarian">Humanitarian</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="sectionHead">
-        <div class="sectionTitle" id="listTitle">Nations</div>
-        <div class="sectionMeta"><span id="listCount">0</span> items</div>
-      </div>
-
-      <div id="list" class="list" role="list"></div>
-    </div>
-
-    <div class="footerHint">
-      <div><b>Click</b> = open dossier • <b>Alt+Click</b> = pin • <b>Esc</b> = close dossier</div>
-      <div class="dim">Hover map for country + coords • “Signals” shows beacon centroids</div>
-    </div>
-  </aside>
-
-  <!-- Right dossier -->
-  <aside id="right" class="closed" aria-label="Dossier panel">
+  <!-- Dossier drawer -->
+  <aside id="dossier" class="closed" aria-label="Dossier panel">
     <div class="dHead">
-      <div class="dTitle">
-        <div class="badgeBox" id="dBadgeBox">OFN</div>
-        <div>
+      <div class="dId">
+        <div class="mark" id="dMark">OFN</div>
+        <div class="dTitle">
           <div class="dName" id="dName">—</div>
-          <div class="dMini" id="dMini">—</div>
+          <div class="dMeta" id="dMeta">—</div>
         </div>
       </div>
-
-      <div class="dActions">
+      <div class="dBtns">
         <button class="btn small" id="zoomBtn" type="button">Zoom</button>
         <button class="btn small" id="pinBtn" type="button">Pin</button>
         <button class="btn small" id="closeBtn" type="button">Close</button>
       </div>
     </div>
-
     <div class="dBody" id="dBody"></div>
   </aside>
 
-  <!-- Bottom status -->
-  <div id="status">
-    <div class="statusLeft">
-      <span class="chip" id="hoverChip">Hover: —</span>
-      <span class="chip" id="coordChip">Lat —, Lng —</span>
-    </div>
-    <div class="statusRight">
-      <span class="chip" id="pinChip">Pins: 0</span>
-      <span class="chip" id="buildChip">Build: 2026-03-03</span>
+  <!-- About modal -->
+  <div id="aboutOverlay" role="dialog" aria-modal="true" aria-label="About the OFN">
+    <div id="aboutModal">
+      <div class="aboutHead">
+        <div>
+          <div class="aboutTitle">THE OFN</div>
+          <div class="aboutSub">
+            The Organisation of Free Nations is a charter-bound framework for cooperation among self-governing states.
+            This atlas visualizes membership, invitations, observers, and OFN-operated sites.
+          </div>
+        </div>
+        <button class="btn small" id="aboutClose" type="button">Close</button>
+      </div>
+
+      <div class="aboutGrid">
+        <div class="aboutCard">
+          <div class="aboutCardTitle">Mandate</div>
+          <p class="p">
+            The Organisation safeguards constitutional legitimacy and collective security obligations as defined by its charter.
+            Member States remain sovereign and equal; cooperation is structured, voluntary, and mission-specific.
+          </p>
+          <p class="p">
+            Sites shown here include OFN-administered facilities where permitted, and partner-hosted relays where accepted.
+          </p>
+        </div>
+
+        <div class="aboutImg">
+          <img src="assets/ofn1.png" alt="OFN imagery 1">
+        </div>
+
+        <div class="aboutImg">
+          <img src="assets/ofn2.png" alt="OFN imagery 2">
+        </div>
+
+        <div class="aboutCard">
+          <div class="aboutCardTitle">Using the map</div>
+          <p class="p">
+            Click a marker or country for a dossier. Use filters to spotlight statuses.
+            Live overlays can show day/night shading and stylized traffic. Sounds can be enabled by adding MP3 files.
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 
