@@ -1,0 +1,68 @@
+{
+  "hq": "Luxembourg",
+  "nations": [
+    { "name": "Luxembourg", "code": "LUX", "status": "founding", "since": 2016, "region": "Europe", "seat": "Luxembourg City", "notes": "Host state of the Secretariat." },
+    { "name": "United States of America", "code": "USA", "status": "member", "since": 2016, "region": "North America", "seat": "Washington, D.C." },
+    { "name": "Australia", "code": "AUS", "status": "member", "since": 2017, "region": "Oceania", "seat": "Canberra" },
+    { "name": "Philippines", "code": "PHL", "status": "member", "since": 2018, "region": "Asia", "seat": "Manila" },
+    { "name": "Ireland", "code": "IRL", "status": "member", "since": 2019, "region": "Europe", "seat": "Dublin" },
+    { "name": "Greece", "code": "GRC", "status": "member", "since": 2019, "region": "Europe", "seat": "Athens" },
+    { "name": "Georgia", "code": "GEO", "status": "partner", "since": 2020, "region": "Eurasia", "seat": "Tbilisi", "notes": "Partner framework; interoperability programs." },
+    { "name": "Japan", "code": "JPN", "status": "invite", "since": 2025, "region": "Asia", "seat": "Tokyo", "notes": "Invite pending final accession instrument." },
+    { "name": "France", "code": "FRA", "status": "observer", "since": 2024, "region": "Europe", "seat": "Paris" },
+    { "name": "Portugal", "code": "PRT", "status": "observer", "since": 2024, "region": "Europe", "seat": "Lisbon" },
+    { "name": "Brazil", "code": "BRA", "status": "partner", "since": 2023, "region": "South America", "seat": "Brasília" },
+    { "name": "China", "code": "CHN", "status": "neutral", "since": 2000, "region": "Asia", "seat": "Beijing" },
+    { "name": "Qatar", "code": "QAT", "status": "partner", "since": 2022, "region": "Middle East", "seat": "Doha" }
+  ],
+  "fiction": [
+    {
+      "id": "FIC-MAYFLOWER",
+      "name": "State of Mayflower (Union of Columbia)",
+      "status": "member",
+      "since": 2016,
+      "polity": "Union of Columbia (Mayflower)",
+      "meta": {
+        "Seat of government": "City of Lander",
+        "Administrative areas": "New Haven • Lee • Clark • Elizabeth"
+      },
+      "overview": "A charter-aligned constituent state noted for early maritime industry and high internal autonomy under the Union of Columbia framework."
+    },
+    {
+      "id": "FIC-ASHFORD",
+      "name": "State of Ashford",
+      "status": "neutral",
+      "since": 2017,
+      "polity": "Territorial administration",
+      "meta": {
+        "Capital": "Ember Township",
+        "Notes": "Local autonomy with federal oversight"
+      },
+      "overview": "A compact territorial entity with a strong civil service tradition. Mostly appears in liaison exercises and mock sessions."
+    },
+    {
+      "id": "FIC-FIRESTONE",
+      "name": "State of Firestone",
+      "status": "invite",
+      "since": 2025,
+      "polity": "Ro-State roleplay community",
+      "meta": {
+        "Motto": "United We Stand",
+        "Focus": "Revitalization & transparency"
+      },
+      "overview": "A long-running Ro-State community currently in an accession-track program focused on standardization and consistent institutional design."
+    },
+    {
+      "id": "FIC-YELLONIA",
+      "name": "Yellonia",
+      "status": "sanctioned",
+      "since": 2022,
+      "polity": "Imperial parliamentary hybrid",
+      "meta": {
+        "Capital": "Yeloria",
+        "Note": "Status reflects internal charter disputes"
+      },
+      "overview": "A contentious actor in the fictional docket; listed under sanctions due to repeated charter disputes and unresolved legitimacy challenges."
+    }
+  ]
+}
